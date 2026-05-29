@@ -4,6 +4,7 @@ about: 신규 테스크 생성
 title: ""
 labels: TASK
 assignees: ""
+projects: ["Astro-Luminoso/2"]
 ---
 
 ## SUMMARY
