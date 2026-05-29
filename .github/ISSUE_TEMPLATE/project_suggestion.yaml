@@ -2,7 +2,6 @@ name: 프로젝트 진행 제안서
 description: 프로젝트 진행하는데에 있어 제안이 있을 경우 제안하기 위한 이슈
 labels: ["SUGGESTION"]
 assignees: []
-projects: ["Astro-Luminoso/2"]
 
 body:
   - type: textarea
