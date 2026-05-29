@@ -4,6 +4,7 @@ about: 테스트 중 버그 발견시에 상세히 기록을 남기고 수정하
 title: ""
 labels: BUG_ISSUE
 assignees: ""
+projects: ["Astro-Luminoso/2"]
 ---
 
 ## Environment
