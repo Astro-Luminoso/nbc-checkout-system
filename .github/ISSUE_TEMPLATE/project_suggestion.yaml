@@ -4,6 +4,7 @@ labels: ["SUGGESTION"]
 assignees: []
 projects: ["Astro-Luminoso/2"]
 
+body:
   - type: textarea
     id: suggestion
     attributes:
