@@ -9,7 +9,7 @@ body:
     id: suggestion
     attributes:
       label: Suggestion
-      description: '프로젝트 진행 방향에 있어 이렇게 하면 어떨까?' 하는 제안이 있다면 자유롭게 작성해 주세요.
+      description: 프로젝트 진행 방향에 있어 이렇게 하면 어떨까? 하는 제안이 있다면 자유롭게 작성해 주세요.
     validations:
       required: true
 
