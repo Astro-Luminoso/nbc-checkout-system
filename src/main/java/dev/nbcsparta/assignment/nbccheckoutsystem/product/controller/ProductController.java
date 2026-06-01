@@ -1,9 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.product.controller;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductListResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.service.ProductService;
-
-import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +18,7 @@ public class ProductController {
 	private final ProductService productService;
 
 	@GetMapping
-	public ResponseEntity<List<ProductResponse>> getProducts() {
-		return ResponseEntity.ok(productService.getProducts());
+	public ResponseEntity<ProductListResponse> getProducts() {
+		return ResponseEntity.ok(ProductListResponse.from(productService.getProducts()));
 	}
 }
