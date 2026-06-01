@@ -1,6 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.domain;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -33,9 +34,9 @@ public class CartItem {
     @JoinColumn(name = "member_id", nullable = false)
     private Members members;
 
-    // TODO: Product 엔티티 생성 후 @ManyToOne 연관관계로 리팩토링 예정
-    @Column(name = "product_id", nullable = false)
-    private Long productId;
+    @ManyToOne(fetch =FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product productId;
 
     @Column(nullable = false)
     private Integer quantity;
