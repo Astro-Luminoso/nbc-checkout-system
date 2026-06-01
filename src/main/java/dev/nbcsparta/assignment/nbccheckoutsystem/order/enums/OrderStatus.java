@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 public enum OrderStatus {
 
-    STANDBY, // 주문 생성 및 결재 대기
+    STANDBY, // 주문 생성 및 결제 대기
     PAID,    // 결제 완료
     CANCELLED, // 주문 취소
     DECLINED;

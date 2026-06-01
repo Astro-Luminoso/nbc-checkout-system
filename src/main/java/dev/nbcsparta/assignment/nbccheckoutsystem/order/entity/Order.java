@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -13,9 +14,11 @@ import java.time.LocalDateTime;
 @Getter
 @Table(name = "orders")
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class Order {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String portOnePaymentId;
@@ -33,9 +36,11 @@ public class Order {
     private OrderStatus orderStatus;
 
     @CreatedDate
+    @Column(nullable = false)
     private LocalDateTime createdDate;
 
     @LastModifiedDate
+    @Column(nullable = false)
     private LocalDateTime updatedDate;
 
     // --------------
