@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @EntityListeners(AuditingEntityListener.class) // @CreatedDate 작동을 위한 리스너 추가
-@Table( // PRD 6.3 준수 / 복합 유니크 제약조건 추가
+@Table( //  복합 유니크 제약조건 추가
         name = "cart_items",
         uniqueConstraints = {
                 @UniqueConstraint(
@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class CartItem {
+public class Cart_Item {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
