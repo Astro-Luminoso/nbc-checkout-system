@@ -11,7 +11,7 @@ on:
   push:
     branches: ["cicd/*"]
   pull_request:
-    branches: [ "main", "dev", "feat/*", "fix/*" ]
+    branches: [ "main", "dev", "feature/*", "fix/*" ]
 
 jobs:
   build:
