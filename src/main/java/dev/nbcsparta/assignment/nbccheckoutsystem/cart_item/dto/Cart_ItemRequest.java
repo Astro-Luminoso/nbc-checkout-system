@@ -1,0 +1,21 @@
+package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto;
+
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
+@NoArgsConstructor
+public class Cart_ItemRequest {
+
+    @NotNull(message = "상품 ID는 필수 항목입니다.")
+    private Long product_id;
+
+    @NotNull(message = "수량은 필수 항목입니다.")
+    @Min(value = 1, message = "장바구니에 최소 1개 이상 담아야 합니다.")
+    private Integer quantity;
+
+
+}
