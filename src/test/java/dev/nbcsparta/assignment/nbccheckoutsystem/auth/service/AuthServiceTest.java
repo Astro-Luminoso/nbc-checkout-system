@@ -2,29 +2,39 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.auth.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.util.ReflectionTestUtils;
 
-@SpringBootTest
-@Transactional
+@ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
 
-    @Autowired
-    private AuthService authService;
-
-    @Autowired
+    @Mock
     private MemberRepository memberRepository;
 
-    @Autowired
     private PasswordEncoder passwordEncoder;
+    private AuthService authService;
+
+    @BeforeEach
+    void setUp() {
+        passwordEncoder = new BCryptPasswordEncoder();
+        authService = new AuthService(memberRepository, passwordEncoder);
+    }
 
     @Test
     void signupCreatesMemberWithEncryptedPassword() {
@@ -34,34 +44,40 @@ class AuthServiceTest {
                 "홍길동",
                 "010-1234-5678"
         );
+        when(memberRepository.existsByEmail("member@example.com")).thenReturn(false);
+        when(memberRepository.save(any(Members.class))).thenAnswer(invocation -> {
+            Members member = invocation.getArgument(0);
+            ReflectionTestUtils.setField(member, "id", 1L);
+            return member;
+        });
 
         SignupResponse response = authService.signup(request);
 
-        Members member = memberRepository.findByEmail("member@example.com").orElseThrow();
-        assertThat(response.memberId()).isEqualTo(member.getId());
+        ArgumentCaptor<Members> memberCaptor = ArgumentCaptor.forClass(Members.class);
+        verify(memberRepository).save(memberCaptor.capture());
+        Members savedMember = memberCaptor.getValue();
+
+        assertThat(response.memberId()).isEqualTo(1L);
         assertThat(response.email()).isEqualTo("member@example.com");
-        assertThat(member.getPassword()).isNotEqualTo("password1234");
-        assertThat(passwordEncoder.matches("password1234", member.getPassword())).isTrue();
+        assertThat(response.name()).isEqualTo("홍길동");
+        assertThat(response.phoneNumber()).isEqualTo("010-1234-5678");
+        assertThat(savedMember.getPassword()).isNotEqualTo("password1234");
+        assertThat(passwordEncoder.matches("password1234", savedMember.getPassword())).isTrue();
     }
 
     @Test
     void signupRejectsDuplicateEmail() {
-        memberRepository.save(new Members(
-                "member@example.com",
-                passwordEncoder.encode("password1234"),
-                "홍길동",
-                "010-1234-5678"
-        ));
-
         SignupRequest request = new SignupRequest(
                 "member@example.com",
                 "otherPassword",
                 "김철수",
                 "010-9999-9999"
         );
+        when(memberRepository.existsByEmail("member@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("이미 가입된 이메일입니다.");
+        verify(memberRepository, never()).save(any(Members.class));
     }
 }

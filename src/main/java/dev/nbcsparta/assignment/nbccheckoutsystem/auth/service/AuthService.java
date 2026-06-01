@@ -31,11 +31,6 @@ public class AuthService {
         );
         Members savedMember = memberRepository.save(member);
 
-        return new SignupResponse(
-                savedMember.getId(),
-                savedMember.getEmail(),
-                savedMember.getName(),
-                savedMember.getPhoneNumber()
-        );
+        return SignupResponse.from(savedMember);
     }
 }
