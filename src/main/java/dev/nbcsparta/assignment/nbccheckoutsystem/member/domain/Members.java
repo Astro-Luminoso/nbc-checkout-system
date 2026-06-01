@@ -40,6 +40,8 @@ public class Members {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
+    private Long pointBalance;
+
 
     public Members (String email, String password, String name, String phoneNumber) {
         this.email = email;
