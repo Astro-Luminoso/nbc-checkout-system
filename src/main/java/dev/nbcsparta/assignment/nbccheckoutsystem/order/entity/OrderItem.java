@@ -4,6 +4,8 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Entity
 @Getter
@@ -20,6 +22,7 @@ import lombok.NoArgsConstructor;
 public class OrderItem {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
