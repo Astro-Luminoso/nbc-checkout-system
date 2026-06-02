@@ -15,10 +15,13 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NoCartItemException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NotOnSaleException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OutOfStockException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -50,7 +53,7 @@ class OrderCreateTest {
     }
 
     @Test
-    void createOrderPreDeductsStockAndCreatesPendingOrderAndPayment() throws Exception {
+    void createOrderCreatesStandbyOrderAndPendingPayment() throws Exception {
         Long memberId = 1L;
         Product keyboard = product(10L, "키보드", 20_000, 10);
         Product mouse = product(20L, "마우스", 15_000, 3);
@@ -83,12 +86,12 @@ class OrderCreateTest {
             softly.assertThat(response.data().portOnePaymentId()).isNotBlank();
             softly.assertThat(response.data().totalAmount()).isEqualTo(50_000);
             softly.assertThat(response.data().usedPoint()).isEqualTo(5_000);
-            softly.assertThat(response.data().orderStatus().name()).isEqualTo("PENDING");
+            softly.assertThat(response.data().orderStatus().name()).isEqualTo("STANDBY");
 
             softly.assertThat(savedOrder.getMemberId()).isEqualTo(memberId);
             softly.assertThat(savedOrder.getTotalAmount()).isEqualTo(55_000);
             softly.assertThat(savedOrder.getUsedPoint()).isEqualTo(5_000);
-            softly.assertThat(savedOrder.getOrderStatus().name()).isEqualTo("PENDING");
+            softly.assertThat(savedOrder.getOrderStatus().name()).isEqualTo("STANDBY");
             softly.assertThat(savedOrder.getOrderItems()).hasSize(2);
 
             softly.assertThat(savedPayment.getOrder()).isSameAs(savedOrder);
@@ -96,8 +99,8 @@ class OrderCreateTest {
             softly.assertThat(savedPayment.getTotalAmount()).isEqualTo(50_000);
             softly.assertThat(savedPayment.getStatus().name()).isEqualTo("PENDING");
 
-            softly.assertThat(stockQuantity(keyboard)).isEqualTo(8);
-            softly.assertThat(stockQuantity(mouse)).isEqualTo(2);
+            softly.assertThat(stockQuantity(keyboard)).isEqualTo(10);
+            softly.assertThat(stockQuantity(mouse)).isEqualTo(3);
         });
     }
 
@@ -123,12 +126,30 @@ class OrderCreateTest {
         when(cartItemRepository.findAllById(request.cartItemIds())).thenReturn(List.of(cartItem));
 
         assertThatThrownBy(() -> orderService.createOrder(1L, request))
-                .isInstanceOf(RuntimeException.class);
+                .isInstanceOf(OutOfStockException.class)
+                .hasMessage("Product Is Out of Stock");
 
         verify(orderRepository, never()).save(any(Order.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(cartItemRepository, never()).deleteAll(anyList());
         assertThat(stockQuantity(product)).isEqualTo(1);
+    }
+
+    @Test
+    void createOrderThrowsNotOnSaleExceptionWhenProductIsNotOnSale() throws Exception {
+        Product product = product(10L, "키보드", 20_000, 10, SaleStatus.DISCONTINUED);
+        CartItem cartItem = cartItem(11L, product, 1);
+        OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
+
+        when(cartItemRepository.findAllById(request.cartItemIds())).thenReturn(List.of(cartItem));
+
+        assertThatThrownBy(() -> orderService.createOrder(1L, request))
+                .isInstanceOf(NotOnSaleException.class)
+                .hasMessage("Product Is Not On Sale");
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(cartItemRepository, never()).deleteAll(anyList());
     }
 
     @Test
@@ -146,6 +167,16 @@ class OrderCreateTest {
     }
 
     private Product product(Long id, String name, int price, int stockQuantity) throws Exception {
+        return product(id, name, price, stockQuantity, SaleStatus.ON_SALE);
+    }
+
+    private Product product(
+            Long id,
+            String name,
+            int price,
+            int stockQuantity,
+            SaleStatus saleStatus
+    ) throws Exception {
         Constructor<Product> constructor = Product.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         Product product = constructor.newInstance();
@@ -153,9 +184,10 @@ class OrderCreateTest {
         ReflectionTestUtils.setField(product, "name", name);
         ReflectionTestUtils.setField(product, "description", name + " 설명");
         ReflectionTestUtils.setField(product, "price", price);
-        ReflectionTestUtils.setField(product, "stock_quantity", stockQuantity);
+        ReflectionTestUtils.setField(product, "stockQuantity", stockQuantity);
         ReflectionTestUtils.setField(product, "category", "DIGITAL");
-        ReflectionTestUtils.setField(product, "sale_price", "ON_SALE");
+        ReflectionTestUtils.setField(product, "salePrice", "ON_SALE");
+        ReflectionTestUtils.setField(product, "saleStatus", saleStatus);
         ReflectionTestUtils.setField(product, "createdDate", LocalDateTime.now());
         ReflectionTestUtils.setField(product, "updatedDate", LocalDateTime.now());
         return product;
@@ -169,6 +201,6 @@ class OrderCreateTest {
     }
 
     private Integer stockQuantity(Product product) {
-        return (Integer) ReflectionTestUtils.getField(product, "stock_quantity");
+        return (Integer) ReflectionTestUtils.getField(product, "stockQuantity");
     }
 }
