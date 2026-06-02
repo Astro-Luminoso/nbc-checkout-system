@@ -4,6 +4,8 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.domain.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NotOnSaleException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OutOfStockException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.dto.PaymentData;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
@@ -12,9 +14,12 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderReposito
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,30 +33,33 @@ public class OrderService {
 
 
 
+    @Transactional
     public OrderCreateResponse createOrder(Long memberId, OrderCreateRequest request) {
         List<CartItem> cartItems = cartItemRepository.findAllById(request.cartItemIds());
         if (cartItems.isEmpty()) {
             throw new NoCartItemException();
         }
 
-        List<OrderItem> orderItems = cartItems.stream()
-                .map(cartItem -> {
-                    Product product = cartItem.getProductId();
-                    return new OrderItem(
-                            product.getPrice(),
-                            cartItem.getQuantity(),
-                            product
-                    );
-                })
-                .toList();
+        List<OrderItem> orderItems = new ArrayList<>();
+        for(CartItem item : cartItems) {
+            Product product = item.getProductId();
+            if(product.getSaleStatus() != SaleStatus.ON_SALE) {
+                throw new NotOnSaleException();
+            }
+
+            if (product.getStockQuantity() - item.getQuantity() < 0) {
+                throw new OutOfStockException();
+            }
+
+            orderItems.add(new OrderItem(product.getPrice(), item.getQuantity(), product));
+        }
+
 
         Order order = new Order(request.usePoint(), memberId, orderItems);
         orderRepository.save(order);
 
         Payment payment = new Payment(order);
         paymentRepository.save(payment);
-
-        cartItemRepository.deleteAll(cartItems);
 
         PaymentData data = PaymentData.from(payment);
 
