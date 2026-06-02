@@ -23,15 +23,13 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String portOnePaymentId;
+    private String orderName;
 
     @Column(nullable = false)
     private Long totalAmount;
 
     @Column(nullable = false)
     private Integer usedPoint;
-
-    private Long pgAmount;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -56,17 +54,18 @@ public class Order {
 
     // ========================
 
-    public Order(Long totalAmount, Integer usedPoint, String portOnePaymentId, Members member) {
+    public Order(Long totalAmount, Integer usedPoint, String orderName, Members member) {
         this.totalAmount = totalAmount;
         this.usedPoint = usedPoint;
-        this.portOnePaymentId = portOnePaymentId;
+        this.orderName = orderName;
         this.orderStatus = OrderStatus.STANDBY;
         this.member = member;
     }
 
-    public OrderStatus paymentResult(Long amount) {
-        this.pgAmount = amount;
-        this.orderStatus = ((this.pgAmount - this.usedPoint) == this.totalAmount) ? OrderStatus.PAID : OrderStatus.DECLINED;
+    public OrderStatus paymentResult(Long  paidAmount) {
+        if ((this.totalAmount - this.usedPoint) == paidAmount ) {
+            orderStatus = OrderStatus.PAID;
+        }
 
         return this.orderStatus;
     }
