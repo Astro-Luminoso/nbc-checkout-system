@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class Cart_ItemController {
 
-    private final Cart_ItemService cartItemService;
+    private final Cart_ItemService CartItemService;
 
 
     @PostMapping
@@ -33,7 +33,7 @@ public class Cart_ItemController {
             @Valid @RequestBody Cart_ItemRequest request
             ) {
         String email = userDetails.getUsername(); // JWT에서 파싱된 이메일
-        Cart_ItemResponse response = cartItemService.addCartItem(email, request);
+        Cart_ItemResponse response = CartItemService.addCartItem(email, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

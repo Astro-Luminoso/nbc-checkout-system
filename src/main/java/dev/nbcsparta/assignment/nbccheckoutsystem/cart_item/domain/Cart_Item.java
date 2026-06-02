@@ -45,13 +45,10 @@ public class Cart_Item {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    // 정적 팩토리 메서드 -> 새 장바구니 항목 생성
-    public static Cart_Item create(Members members, Product product, Integer quantity){
-        Cart_Item item = new Cart_Item();
-        item.members = members;
-        item.productId = product;
-        item.quantity = quantity;
-        return item;
+    public Cart_Item(Members members, Product product, Integer quantity) {
+        this.members = members;
+        this.productId = product;
+        this.quantity = quantity;
     }
     // 동일 상품 재담기 시에 수량 합산
     public void addQuantity(Integer additionalQuantity){

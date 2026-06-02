@@ -14,9 +14,11 @@ public class Cart_ItemService {
 
     private final Cart_ItemRepository cartItemRepository;
 
+    // 상품 담기
     @Transactional
     public Cart_ItemResponse addCartItem(String email, Cart_ItemRequest request){
-        // TODO: MemberRepository, ProductRepository 구현 완료 후 로직 구현
+        // TODO: MemberRepository 머지 후 구현
         return null;
     }
+
 }
