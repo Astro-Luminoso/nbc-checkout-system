@@ -1,4 +1,4 @@
-package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.domain;
+package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
@@ -42,6 +42,7 @@ public class CartItem {
     private Integer quantity;
 
     @CreatedDate
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 

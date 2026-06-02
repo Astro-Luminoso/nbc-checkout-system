@@ -7,11 +7,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.LoginRequest;
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.LoginResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.DuplicateEmailException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.LoginFailedException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.jwt.JwtProvider;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,13 +33,16 @@ class AuthServiceTest {
     @Mock
     private MemberRepository memberRepository;
 
+    @Mock
+    private JwtProvider jwtProvider;
+
     private PasswordEncoder passwordEncoder;
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
-        authService = new AuthService(memberRepository, passwordEncoder);
+        authService = new AuthService(memberRepository, passwordEncoder, jwtProvider);
     }
 
     @Test
@@ -80,5 +88,52 @@ class AuthServiceTest {
                 .isInstanceOf(DuplicateEmailException.class)
                 .hasMessage("이미 가입된 이메일입니다.");
         verify(memberRepository, never()).save(any(Members.class));
+    }
+
+    @Test
+    void loginReturnsAccessToken() {
+        String encodedPassword = passwordEncoder.encode("password1234");
+        Members member = new Members(
+                "member@example.com",
+                encodedPassword,
+                "홍길동",
+                "010-1234-5678"
+        );
+        ReflectionTestUtils.setField(member, "id", 1L);
+        LoginRequest request = new LoginRequest("member@example.com", "password1234");
+        when(memberRepository.findByEmail("member@example.com")).thenReturn(Optional.of(member));
+        when(jwtProvider.createToken(1L, "member@example.com")).thenReturn("access-token");
+
+        LoginResponse response = authService.login(request);
+
+        assertThat(response.accessToken()).isEqualTo("access-token");
+        assertThat(response.tokenType()).isEqualTo("Bearer");
+    }
+
+    @Test
+    void loginRejectsUnknownEmail() {
+        LoginRequest request = new LoginRequest("unknown@example.com", "password1234");
+        when(memberRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(LoginFailedException.class)
+                .hasMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
+    }
+
+    @Test
+    void loginRejectsInvalidPassword() {
+        String encodedPassword = passwordEncoder.encode("password1234");
+        Members member = new Members(
+                "member@example.com",
+                encodedPassword,
+                "홍길동",
+                "010-1234-5678"
+        );
+        LoginRequest request = new LoginRequest("member@example.com", "wrongPassword");
+        when(memberRepository.findByEmail("member@example.com")).thenReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(LoginFailedException.class)
+                .hasMessage("이메일 또는 비밀번호가 올바르지 않습니다.");
     }
 }
