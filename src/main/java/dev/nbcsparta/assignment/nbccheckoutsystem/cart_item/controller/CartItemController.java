@@ -3,6 +3,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.controller;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.OutOfStockException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/cart-items")
 @RequiredArgsConstructor
@@ -24,15 +27,19 @@ public class CartItemController {
 
 
     @PostMapping
-    public ResponseEntity<CartItemResponse> addCartItem(
-            @AuthenticationPrincipal UserDetails userDetails,
-            // Spring Security가 JWT 필터에서 토큰을 파싱한 뒤
-            // SecurityContextHolder에 저장함 @AuthenticationPrincipal은 그 정보를 파라미터로 꺼내줌
-
+    public ResponseEntity<?> addCartItem(
+            @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody CartItemRequest request
-            ) {
-        String email = userDetails.getUsername(); // JWT에서 파싱된 이메일
-        CartItemResponse response = cartItemService.addCartItem(email, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    ) {
+        try {
+            CartItemResponse response = cartItemService.addCartItem(memberId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (OutOfStockException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", e.getMessage()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 }
