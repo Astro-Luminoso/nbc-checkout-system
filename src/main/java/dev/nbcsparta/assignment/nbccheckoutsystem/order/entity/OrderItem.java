@@ -24,7 +24,7 @@ public class OrderItem {
     private Long id;
 
     @Column(nullable = false)
-    private Long price;
+    private int price;
 
     @Column(nullable = false)
     private Integer quantities;
@@ -37,10 +37,9 @@ public class OrderItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    public OrderItem(Long price, Integer quantities, Order order, Product product) {
+    public OrderItem(int price, Integer quantities, Product product) {
         this.price = price;
         this.quantities = quantities;
-        this.order = order;
         this.product = product;
     }
 }

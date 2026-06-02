@@ -1,6 +1,5 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.entity;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -23,13 +22,14 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String orderName;
+    @Column(nullable = false)
+    private Long memberId;
 
     @Column(nullable = false)
-    private Long totalAmount;
+    private int totalAmount;
 
     @Column(nullable = false)
-    private Integer usedPoint;
+    private int usedPoint;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -48,18 +48,25 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Members member;
-
     // ========================
 
-    public Order(Long totalAmount, Integer usedPoint, String orderName, Members member) {
-        this.totalAmount = totalAmount;
+    private Order(int totalAmount, int usedPoint, Long memberId, List<OrderItem> orderItems) {
         this.usedPoint = usedPoint;
-        this.orderName = orderName;
+        this.memberId = memberId;
+        this.totalAmount = totalAmount;
+        this. orderItems = orderItems;
         this.orderStatus = OrderStatus.STANDBY;
-        this.member = member;
+    }
+
+    public Order(int usedPoint, Long memberId, List<OrderItem> orderItems) {
+        this(
+                orderItems.stream()
+                        .mapToInt(orderItem -> orderItem.getPrice() * orderItem.getQuantities())
+                        .sum(),
+                usedPoint,
+                memberId,
+                orderItems
+        );
     }
 
     public OrderStatus paymentResult(Long  paidAmount) {
