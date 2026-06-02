@@ -25,14 +25,10 @@ public class CartItemController {
 
     @PostMapping
     public ResponseEntity<CartItemResponse> addCartItem(
-            @AuthenticationPrincipal UserDetails userDetails,
-            // Spring Security가 JWT 필터에서 토큰을 파싱한  뒤
-            // SecurityContextHolder에 저장함 @AuthenticationPrincipal은 그 정보를 파라미터로 꺼내줌
-
+            @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody CartItemRequest request
             ) {
-        String email = userDetails.getUsername();
-        CartItemResponse response = cartItemService.addCartItem(email, request);
+        CartItemResponse response = cartItemService.addCartItem(memberId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

@@ -3,6 +3,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.OutOfStockException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
@@ -22,16 +23,16 @@ public class CartItemService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public CartItemResponse addCartItem(String email, CartItemRequest request){
+    public CartItemResponse addCartItem(Long memberId, CartItemRequest request){
 
-        Members members = memberRepository.findByEmail(email)
+        Members members = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
         Product product = productRepository.findById(request.product_id())
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
         if (request.quantity() > product.getStock_quantity()){
-            throw new IllegalArgumentException("재고가 부족합니다.");
+            throw new OutOfStockException();
         }
 
         CartItem cartItem = cartItemRepository
@@ -40,7 +41,7 @@ public class CartItemService {
                     int newQuantity = existing.getQuantity() + request.quantity();
 
                     if (newQuantity > product.getStock_quantity()){
-                        throw new IllegalArgumentException("재고가 부족합니다.");
+                        throw new OutOfStockException();
                     }
 
                     existing.addQuantity(request.quantity());
