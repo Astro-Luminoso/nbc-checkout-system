@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Cart_Item {
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,5 +44,15 @@ public class Cart_Item {
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
+
+    public CartItem(Members members, Product product, Integer quantity) {
+        this.members = members;
+        this.productId = product;
+        this.quantity = quantity;
+    }
+    // 동일 상품 재담기 시에 수량 합산
+    public void addQuantity(Integer additionalQuantity){
+        this.quantity += additionalQuantity;
+    }
 
 }
