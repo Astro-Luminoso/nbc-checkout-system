@@ -40,6 +40,9 @@ public class Product {
 	@Column(nullable = false)
 	private String salePrice;
 
+	@Column(nullable = false)
+	private SaleStatus saleStatus;
+
 	@CreatedDate
 	@Column(nullable = false)
 	private LocalDateTime createdDate;
