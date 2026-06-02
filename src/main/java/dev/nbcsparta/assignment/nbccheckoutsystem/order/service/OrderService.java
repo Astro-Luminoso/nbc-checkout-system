@@ -2,6 +2,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.PointExceedTotalCostException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
@@ -59,8 +60,13 @@ public class OrderService {
             product.deductStockValue(item.getQuantity());
         }
 
+        int totalCost = orderItems.stream().mapToInt(item -> item.getPrice() * item.getQuantities()).sum();
 
-        Order order = new Order(request.usePoint(), memberId, orderItems);
+        if (totalCost < request.usePoint()) {
+            throw new PointExceedTotalCostException();
+        }
+
+        Order order = new Order(totalCost, request.usePoint(), memberId, orderItems);
         orderRepository.save(order);
 
         Payment payment = new Payment(order);
