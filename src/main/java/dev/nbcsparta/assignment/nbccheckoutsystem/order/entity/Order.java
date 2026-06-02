@@ -51,24 +51,13 @@ public class Order {
 
     // ========================
 
-    private Order(int totalAmount, int usedPoint, Long memberId, List<OrderItem> orderItems) {
+    public Order(int totalAmount, int usedPoint, Long memberId, List<OrderItem> orderItems) {
         this.usedPoint = usedPoint;
         this.memberId = memberId;
         this.totalAmount = totalAmount;
         this. orderItems = new ArrayList<>();
         this.orderStatus = OrderStatus.STANDBY;
         orderItems.forEach(this::addOrderItem);
-    }
-
-    public Order(int usedPoint, Long memberId, List<OrderItem> orderItems) {
-        this(
-                orderItems.stream()
-                        .mapToInt(orderItem -> orderItem.getPrice() * orderItem.getQuantities())
-                        .sum(),
-                usedPoint,
-                memberId,
-                orderItems
-        );
     }
 
     public void addOrderItem(OrderItem orderItem) {
