@@ -1,6 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
@@ -35,9 +36,12 @@ public class OrderService {
 
     @Transactional
     public OrderCreateResponse createOrder(Long memberId, OrderCreateRequest request) {
-        List<CartItem> cartItems = cartItemRepository.findAllById(request.cartItemIds());
+        List<CartItem> cartItems = cartItemRepository.findAllById(memberId, request.cartItemIds());
         if (cartItems.isEmpty()) {
             throw new NoCartItemException();
+        }
+        if (cartItems.size() != request.cartItemIds().size()) {
+            throw new ItemsNotMatchException();
         }
 
         List<OrderItem> orderItems = new ArrayList<>();
