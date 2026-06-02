@@ -29,10 +29,10 @@ public class Product {
 	private String description;
 
 	@Column(nullable = false)
-	private Integer price;
+	private int price;
 
 	@Column(nullable = false)
-	private Integer stockQuantity;
+	private int stockQuantity;
 
 	@Column(nullable = false)
 	private String category;
@@ -51,5 +51,10 @@ public class Product {
 	@LastModifiedDate
 	@Column(nullable = false)
 	private LocalDateTime updatedDate;
+
+	public void deductStockValue(int amount) {
+		this.stockQuantity -= amount;
+	}
+
 
 }

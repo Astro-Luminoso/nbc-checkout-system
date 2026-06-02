@@ -9,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -54,8 +55,9 @@ public class Order {
         this.usedPoint = usedPoint;
         this.memberId = memberId;
         this.totalAmount = totalAmount;
-        this. orderItems = orderItems;
+        this. orderItems = new ArrayList<>();
         this.orderStatus = OrderStatus.STANDBY;
+        orderItems.forEach(this::addOrderItem);
     }
 
     public Order(int usedPoint, Long memberId, List<OrderItem> orderItems) {
@@ -67,6 +69,11 @@ public class Order {
                 memberId,
                 orderItems
         );
+    }
+
+    public void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
     }
 
     public OrderStatus paymentResult(Long  paidAmount) {

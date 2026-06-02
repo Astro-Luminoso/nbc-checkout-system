@@ -1,8 +1,11 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.SoftAssertions.assertSoftly;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
@@ -10,6 +13,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
@@ -61,7 +65,7 @@ class OrderCreateTest {
         CartItem mouseCartItem = cartItem(12L, mouse, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 5_000);
 
-        when(cartItemRepository.findAllById(request.cartItemIds()))
+        when(cartItemRepository.findAllById(memberId, request.cartItemIds()))
                 .thenReturn(List.of(keyboardCartItem, mouseCartItem));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
@@ -80,28 +84,29 @@ class OrderCreateTest {
         Order savedOrder = orderCaptor.getValue();
         Payment savedPayment = paymentCaptor.getValue();
 
-        assertSoftly(softly -> {
-            softly.assertThat(response.success()).isTrue();
-            softly.assertThat(response.data().OrderId()).isEqualTo(1001L);
-            softly.assertThat(response.data().portOnePaymentId()).isNotBlank();
-            softly.assertThat(response.data().totalAmount()).isEqualTo(50_000);
-            softly.assertThat(response.data().usedPoint()).isEqualTo(5_000);
-            softly.assertThat(response.data().orderStatus().name()).isEqualTo("STANDBY");
+        assertAll(
+                () -> assertTrue(response.success()),
+                () -> assertEquals(1001L, response.data().OrderId()),
+                () -> assertFalse(response.data().portOnePaymentId().isBlank()),
+                () -> assertEquals(50_000, response.data().totalAmount()),
+                () -> assertEquals(5_000, response.data().usedPoint()),
+                () -> assertEquals("STANDBY", response.data().orderStatus().name()),
 
-            softly.assertThat(savedOrder.getMemberId()).isEqualTo(memberId);
-            softly.assertThat(savedOrder.getTotalAmount()).isEqualTo(55_000);
-            softly.assertThat(savedOrder.getUsedPoint()).isEqualTo(5_000);
-            softly.assertThat(savedOrder.getOrderStatus().name()).isEqualTo("STANDBY");
-            softly.assertThat(savedOrder.getOrderItems()).hasSize(2);
+                () -> assertEquals(memberId, savedOrder.getMemberId()),
+                () -> assertEquals(55_000, savedOrder.getTotalAmount()),
+                () -> assertEquals(5_000, savedOrder.getUsedPoint()),
+                () -> assertEquals("STANDBY", savedOrder.getOrderStatus().name()),
+                () -> assertEquals(2, savedOrder.getOrderItems().size()),
+                () -> savedOrder.getOrderItems().forEach(orderItem -> assertSame(savedOrder, orderItem.getOrder())),
 
-            softly.assertThat(savedPayment.getOrder()).isSameAs(savedOrder);
-            softly.assertThat(savedPayment.getPortOnePaymentId()).isNotBlank();
-            softly.assertThat(savedPayment.getTotalAmount()).isEqualTo(50_000);
-            softly.assertThat(savedPayment.getStatus().name()).isEqualTo("PENDING");
+                () -> assertSame(savedOrder, savedPayment.getOrder()),
+                () -> assertFalse(savedPayment.getPortOnePaymentId().isBlank()),
+                () -> assertEquals(50_000, savedPayment.getTotalAmount()),
+                () -> assertEquals("PENDING", savedPayment.getStatus().name()),
 
-            softly.assertThat(stockQuantity(keyboard)).isEqualTo(10);
-            softly.assertThat(stockQuantity(mouse)).isEqualTo(3);
-        });
+                () -> assertEquals(8, stockQuantity(keyboard)),
+                () -> assertEquals(2, stockQuantity(mouse))
+        );
     }
 
     @Test
@@ -110,7 +115,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 2);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
-        when(cartItemRepository.findAllById(request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         orderService.createOrder(1L, request);
 
@@ -123,16 +128,20 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 2);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
-        when(cartItemRepository.findAllById(request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
-        assertThatThrownBy(() -> orderService.createOrder(1L, request))
-                .isInstanceOf(OutOfStockException.class)
-                .hasMessage("Product Is Out of Stock");
+        OutOfStockException exception = assertThrows(
+                OutOfStockException.class,
+                () -> orderService.createOrder(1L, request)
+        );
 
         verify(orderRepository, never()).save(any(Order.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(cartItemRepository, never()).deleteAll(anyList());
-        assertThat(stockQuantity(product)).isEqualTo(1);
+        assertAll(
+                () -> assertEquals("Product Is Out of Stock", exception.getMessage()),
+                () -> assertEquals(1, stockQuantity(product))
+        );
     }
 
     @Test
@@ -141,29 +150,55 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
-        when(cartItemRepository.findAllById(request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
-        assertThatThrownBy(() -> orderService.createOrder(1L, request))
-                .isInstanceOf(NotOnSaleException.class)
-                .hasMessage("Product Is Not On Sale");
+        NotOnSaleException exception = assertThrows(
+                NotOnSaleException.class,
+                () -> orderService.createOrder(1L, request)
+        );
 
         verify(orderRepository, never()).save(any(Order.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(cartItemRepository, never()).deleteAll(anyList());
+        assertEquals("Product Is Not On Sale", exception.getMessage());
     }
 
     @Test
     void createOrderThrowsNoCartItemExceptionWhenSelectedCartItemsDoNotExist() {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
-        when(cartItemRepository.findAllById(request.cartItemIds())).thenReturn(List.of());
+        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of());
 
-        assertThatThrownBy(() -> orderService.createOrder(1L, request))
-                .isInstanceOf(NoCartItemException.class)
-                .hasMessage("No cart items found for the provided IDs.");
+        NoCartItemException exception = assertThrows(
+                NoCartItemException.class,
+                () -> orderService.createOrder(1L, request)
+        );
 
         verify(orderRepository, never()).save(any(Order.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         verify(cartItemRepository, never()).deleteAll(anyList());
+        assertEquals("No cart items found for the provided IDs.", exception.getMessage());
+    }
+
+    @Test
+    void createOrderThrowsItemsNotMatchExceptionWhenSomeSelectedCartItemsDoNotBelongToMember() throws Exception {
+        Product product = product(10L, "키보드", 20_000, 10);
+        CartItem cartItem = cartItem(11L, product, 1);
+        OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
+
+        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+
+        ItemsNotMatchException exception = assertThrows(
+                ItemsNotMatchException.class,
+                () -> orderService.createOrder(1L, request)
+        );
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(cartItemRepository, never()).deleteAll(anyList());
+        assertAll(
+                () -> assertEquals("Number of Items we found and you want to purchase is not match. Perhaps the member is not unauthorised client?", exception.getMessage()),
+                () -> assertEquals(10, stockQuantity(product))
+        );
     }
 
     private Product product(Long id, String name, int price, int stockQuantity) throws Exception {

@@ -56,6 +56,7 @@ public class OrderService {
             }
 
             orderItems.add(new OrderItem(product.getPrice(), item.getQuantity(), product));
+            product.deductStockValue(item.getQuantity());
         }
 
 

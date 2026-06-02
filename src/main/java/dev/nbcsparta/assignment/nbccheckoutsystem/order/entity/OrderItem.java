@@ -42,4 +42,9 @@ public class OrderItem {
         this.quantities = quantities;
         this.product = product;
     }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
 }
