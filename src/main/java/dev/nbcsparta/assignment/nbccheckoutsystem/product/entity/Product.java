@@ -32,13 +32,13 @@ public class Product {
 	private Integer price;
 
 	@Column(nullable = false)
-	private Integer stock_quantity;
+	private Integer stockQuantity;
 
 	@Column(nullable = false)
 	private String category;
 
 	@Column(nullable = false)
-	private String sale_price;
+	private String salePrice;
 
 	@CreatedDate
 	@Column(nullable = false)
