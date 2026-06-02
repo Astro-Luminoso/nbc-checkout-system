@@ -14,7 +14,7 @@ public enum SaleStatus {
     public static SaleStatus getStatus(String status) {
 
         return Arrays.stream(SaleStatus.values())
-                .filter(orderStatus -> orderStatus.name().equals(status))
+                .filter(saleStatus -> saleStatus.name().equals(status))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Invalid order status: " + status));
     }
