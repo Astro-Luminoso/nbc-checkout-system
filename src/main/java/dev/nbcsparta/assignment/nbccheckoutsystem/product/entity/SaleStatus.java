@@ -1,0 +1,27 @@
+package dev.nbcsparta.assignment.nbccheckoutsystem.product.entity;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
+
+import java.util.Arrays;
+
+public enum SaleStatus {
+    ON_SALE,
+    OUT_OF_STOCK,
+    DISCONTINUED;
+
+    @JsonCreator
+    public static OrderStatus getStatus(String status) {
+
+        return Arrays.stream(OrderStatus.values())
+                .filter(orderStatus -> orderStatus.name().equals(status))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Invalid order status: " + status));
+    }
+
+    @JsonValue
+    public String getValue() {
+        return this.name();
+    }
+}
