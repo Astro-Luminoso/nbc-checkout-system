@@ -1,8 +1,13 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,12 +18,39 @@ public class CartItemService {
 
 
     private final CartItemRepository cartItemRepository;
+    private final MemberRepository memberRepository;
+    private final ProductRepository productRepository;
 
-    // 상품 담기
     @Transactional
     public CartItemResponse addCartItem(String email, CartItemRequest request){
-        // TODO: MemberRepository 머지 후 구현
-        return null;
+
+        Members members = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        Product product = productRepository.findById(request.product_id())
+                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
+        if (request.quantity() > product.getStock_quantity()){
+            throw new IllegalArgumentException("재고가 부족합니다.");
+        }
+
+        CartItem cartItem = cartItemRepository
+                .findByMembersAndProductId(members, product)
+                .map(existing -> {
+                    int newQuantity = existing.getQuantity() + request.quantity();
+
+                    if (newQuantity > product.getStock_quantity()){
+                        throw new IllegalArgumentException("재고가 부족합니다.");
+                    }
+
+                    existing.addQuantity(request.quantity());
+                    return existing;
+                })
+                .orElseGet(()-> cartItemRepository.save(
+                        new CartItem(members, product, request.quantity())
+                ));
+
+        return CartItemResponse.from(cartItem);
     }
 
 }
