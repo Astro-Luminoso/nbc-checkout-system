@@ -6,6 +6,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,12 +22,8 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderCreateResponse> createOrder(
             @RequestBody OrderCreateRequest request,
-            Authentication authentication
+            @AuthenticationPrincipal Long memberId
     ) {
-        Long memberId = null;
-        if (authentication != null && authentication.getPrincipal() instanceof Long) {
-            memberId = (Long) authentication.getPrincipal();
-        }
         if (memberId == null) {
             return ResponseEntity.status(401).build();
         }
