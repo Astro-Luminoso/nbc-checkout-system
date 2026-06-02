@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupResponse;
-import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.CustomException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.DuplicateEmailException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,7 +77,7 @@ class AuthServiceTest {
         when(memberRepository.existsByEmail("member@example.com")).thenReturn(true);
 
         assertThatThrownBy(() -> authService.signup(request))
-                .isInstanceOf(CustomException.class)
+                .isInstanceOf(DuplicateEmailException.class)
                 .hasMessage("이미 가입된 이메일입니다.");
         verify(memberRepository, never()).save(any(Members.class));
     }

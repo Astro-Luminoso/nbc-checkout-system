@@ -2,8 +2,8 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.auth.controller;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.DuplicateEmailException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.service.AuthService;
-import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.CustomException;
 import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -28,9 +28,9 @@ public class AuthController {
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(response);
-        } catch (CustomException exception) {
+        } catch (DuplicateEmailException exception) {
             return ResponseEntity
-                    .status(exception.getStatus())
+                    .status(HttpStatus.CONFLICT)
                     .body(Map.of("message", exception.getMessage()));
         }
     }

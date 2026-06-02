@@ -2,11 +2,10 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.auth.service;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupResponse;
-import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.CustomException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.DuplicateEmailException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,7 @@ public class AuthService {
     @Transactional
     public SignupResponse signup(SignupRequest request) {
         if (memberRepository.existsByEmail(request.email())) {
-            throw new CustomException(HttpStatus.CONFLICT, "이미 가입된 이메일입니다.");
+            throw new DuplicateEmailException();
         }
 
         Members member = new Members(
