@@ -41,6 +41,7 @@ public class Product {
 	private String salePrice;
 
 	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
 	private SaleStatus saleStatus;
 
 	@CreatedDate
