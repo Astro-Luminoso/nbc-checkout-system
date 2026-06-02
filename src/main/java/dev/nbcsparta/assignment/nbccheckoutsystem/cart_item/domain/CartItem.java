@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class Cart_Item {
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,7 +45,7 @@ public class Cart_Item {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    public Cart_Item(Members members, Product product, Integer quantity) {
+    public CartItem(Members members, Product product, Integer quantity) {
         this.members = members;
         this.productId = product;
         this.quantity = quantity;

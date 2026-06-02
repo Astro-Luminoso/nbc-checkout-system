@@ -1,10 +1,9 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.controller;
 
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.domain.Cart_Item;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.Cart_ItemRequest;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.Cart_ItemResponse;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.Cart_ItemService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemRequest;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,21 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/cart-items")
 @RequiredArgsConstructor
-public class Cart_ItemController {
+public class CartItemController {
 
-    private final Cart_ItemService CartItemService;
+    private final CartItemService cartItemService;
 
 
     @PostMapping
-    public ResponseEntity<Cart_ItemResponse> addCartItem(
+    public ResponseEntity<CartItemResponse> addCartItem(
             @AuthenticationPrincipal UserDetails userDetails,
             // Spring Security가 JWT 필터에서 토큰을 파싱한 뒤
             // SecurityContextHolder에 저장함 @AuthenticationPrincipal은 그 정보를 파라미터로 꺼내줌
 
-            @Valid @RequestBody Cart_ItemRequest request
+            @Valid @RequestBody CartItemRequest request
             ) {
         String email = userDetails.getUsername(); // JWT에서 파싱된 이메일
-        Cart_ItemResponse response = CartItemService.addCartItem(email, request);
+        CartItemResponse response = cartItemService.addCartItem(email, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }

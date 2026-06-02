@@ -4,7 +4,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
-public record Cart_ItemRequest (
+public record CartItemRequest(
         @NotNull(message = "상품 ID는 필수 항목입니다.")
         Long product_id,
 
