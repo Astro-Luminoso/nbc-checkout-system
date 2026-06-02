@@ -19,7 +19,6 @@ public class MemberService {
         Members member = memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
 
-        Long balance = member.getPointBalance() != null ? member.getPointBalance() : 0L;
-        return new PointBalanceResponse(balance);
+        return PointBalanceResponse.from(member);
     }
 }
