@@ -5,6 +5,7 @@ import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
 import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
@@ -82,9 +83,10 @@ class ProductServiceTest {
 		ReflectionTestUtils.setField(product, "name", name);
 		ReflectionTestUtils.setField(product, "description", description);
 		ReflectionTestUtils.setField(product, "price", price);
-		ReflectionTestUtils.setField(product, "stock_quantity", stockQuantity);
+		ReflectionTestUtils.setField(product, "stockQuantity", stockQuantity);
 		ReflectionTestUtils.setField(product, "category", category);
-		ReflectionTestUtils.setField(product, "sale_price", salePrice);
+		ReflectionTestUtils.setField(product, "salePrice", salePrice);
+		ReflectionTestUtils.setField(product, "saleStatus", SaleStatus.ON_SALE);
 		ReflectionTestUtils.setField(product, "createdDate", LocalDateTime.now());
 		ReflectionTestUtils.setField(product, "updatedDate", LocalDateTime.now());
 		return product;
