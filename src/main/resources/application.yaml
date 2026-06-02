@@ -1,7 +1,10 @@
 spring:
   application:
     name: nbc-checkout-system
+  profiles:
+    active: {SPRING_PROFILES_ACTIVE:local}
 
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:3600000}
+
