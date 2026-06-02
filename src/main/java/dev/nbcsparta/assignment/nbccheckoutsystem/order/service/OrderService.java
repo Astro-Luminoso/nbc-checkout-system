@@ -1,6 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.domain.CartItem;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
