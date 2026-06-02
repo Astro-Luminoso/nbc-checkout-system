@@ -16,7 +16,7 @@ public enum SaleStatus {
         return Arrays.stream(SaleStatus.values())
                 .filter(saleStatus -> saleStatus.name().equals(status))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Invalid order status: " + status));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid sale status: " + status));
     }
 
     @JsonValue
