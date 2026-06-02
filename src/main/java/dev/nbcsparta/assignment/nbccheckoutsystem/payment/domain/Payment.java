@@ -31,7 +31,7 @@ public class Payment {
     private String portOnePaymentId;
 
     @Column(nullable = false)
-    private Long totalAmount;
+    private int totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -47,10 +47,10 @@ public class Payment {
     @Column(nullable = false)
     private LocalDateTime updatedDate;
 
-    public Payment(Order order, Long totalAmount) {
+    public Payment(Order order) {
         this.order = order;
         this.portOnePaymentId = UUID.randomUUID().toString();
-        this.totalAmount = totalAmount;
+        this.totalAmount = order.getTotalAmount() - order.getUsedPoint();
         this.status = PaymentStatus.PENDING;
     }
 }

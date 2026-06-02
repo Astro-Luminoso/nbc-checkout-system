@@ -29,16 +29,20 @@ public class Product {
 	private String description;
 
 	@Column(nullable = false)
-	private Integer price;
+	private int price;
 
 	@Column(nullable = false)
-	private Integer stock_quantity;
+	private int stockQuantity;
 
 	@Column(nullable = false)
 	private String category;
 
 	@Column(nullable = false)
-	private String sale_price;
+	private String salePrice;
+
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private SaleStatus saleStatus;
 
 	@CreatedDate
 	@Column(nullable = false)
@@ -47,5 +51,10 @@ public class Product {
 	@LastModifiedDate
 	@Column(nullable = false)
 	private LocalDateTime updatedDate;
+
+	public void deductStockValue(int amount) {
+		this.stockQuantity -= amount;
+	}
+
 
 }
