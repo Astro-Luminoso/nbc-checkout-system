@@ -5,7 +5,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 
 public record PaymentData(
-        Long OrderId,
+        Long orderId,
         String portOnePaymentId,
         int totalAmount,
         int usedPoint,
