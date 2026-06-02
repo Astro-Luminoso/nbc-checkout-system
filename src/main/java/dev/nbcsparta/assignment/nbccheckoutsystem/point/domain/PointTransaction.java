@@ -2,7 +2,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.point.domain;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
-import dev.nbcsparta.assignment.nbccheckoutsystem.refund.domain.Refund;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Refund;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
