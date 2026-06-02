@@ -42,6 +42,7 @@ public class CartItem {
     private Integer quantity;
 
     @CreatedDate
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
