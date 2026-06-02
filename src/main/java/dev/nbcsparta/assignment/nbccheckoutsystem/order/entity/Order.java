@@ -1,5 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.entity;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,6 +10,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -45,12 +47,21 @@ public class Order {
 
     // --------------
 
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems;
 
-    public Order(Long totalAmount, Integer usedPoint, String portOnePaymentId) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Members member;
+
+    // ========================
+
+    public Order(Long totalAmount, Integer usedPoint, String portOnePaymentId, Members member) {
         this.totalAmount = totalAmount;
         this.usedPoint = usedPoint;
         this.portOnePaymentId = portOnePaymentId;
         this.orderStatus = OrderStatus.STANDBY;
+        this.member = member;
     }
 
     public OrderStatus paymentResult(Long amount) {
