@@ -55,7 +55,7 @@ public class Order {
         this.usedPoint = usedPoint;
         this.memberId = memberId;
         this.totalAmount = totalAmount;
-        this. orderItems = new ArrayList<>();
+        this.orderItems = new ArrayList<>();
         this.orderStatus = OrderStatus.STANDBY;
         orderItems.forEach(this::addOrderItem);
     }
