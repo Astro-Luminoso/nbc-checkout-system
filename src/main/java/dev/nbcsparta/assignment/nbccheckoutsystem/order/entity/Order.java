@@ -1,6 +1,5 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.entity;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,6 +9,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,15 +23,14 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String portOnePaymentId;
+    @Column(nullable = false)
+    private Long memberId;
 
     @Column(nullable = false)
-    private Long totalAmount;
+    private int totalAmount;
 
     @Column(nullable = false)
-    private Integer usedPoint;
-
-    private Long pgAmount;
+    private int usedPoint;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -50,23 +49,26 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    private Members member;
-
     // ========================
 
-    public Order(Long totalAmount, Integer usedPoint, String portOnePaymentId, Members member) {
-        this.totalAmount = totalAmount;
+    public Order(int totalAmount, int usedPoint, Long memberId, List<OrderItem> orderItems) {
         this.usedPoint = usedPoint;
-        this.portOnePaymentId = portOnePaymentId;
+        this.memberId = memberId;
+        this.totalAmount = totalAmount;
+        this.orderItems = new ArrayList<>();
         this.orderStatus = OrderStatus.STANDBY;
-        this.member = member;
+        orderItems.forEach(this::addOrderItem);
     }
 
-    public OrderStatus paymentResult(Long amount) {
-        this.pgAmount = amount;
-        this.orderStatus = ((this.pgAmount - this.usedPoint) == this.totalAmount) ? OrderStatus.PAID : OrderStatus.DECLINED;
+    public void addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
+    }
+
+    public OrderStatus paymentResult(Long  paidAmount) {
+        if ((this.totalAmount - this.usedPoint) == paidAmount ) {
+            orderStatus = OrderStatus.PAID;
+        }
 
         return this.orderStatus;
     }
