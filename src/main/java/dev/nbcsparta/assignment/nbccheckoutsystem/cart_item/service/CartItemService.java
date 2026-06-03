@@ -3,6 +3,8 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.GetCartItemResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.GetCartResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.OutOfStockException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
@@ -12,6 +14,8 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepo
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +32,7 @@ public class CartItemService {
         Members members = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        Product product = productRepository.findById(request.product_id())
+        Product product = productRepository.findById(request.productId())
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
         if (request.quantity() > product.getStockQuantity()){
@@ -36,7 +40,7 @@ public class CartItemService {
         }
 
         CartItem cartItem = cartItemRepository
-                .findByMembersAndProductId(members, product)
+                .findByMembersAndProduct(members, product)
                 .map(existing -> {
                     int newQuantity = existing.getQuantity() + request.quantity();
 
@@ -54,4 +58,21 @@ public class CartItemService {
         return CartItemResponse.from(cartItem);
     }
 
+    @Transactional(readOnly = true)
+    public GetCartResponse getCartItems(Long memberId) {
+        Members members = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        List<CartItem> cartItems = cartItemRepository.findAllByMembers(members);
+
+        List<GetCartItemResponse> items = cartItems.stream()
+                .map(GetCartItemResponse::from)
+                .toList();
+
+        int totalAmount = items.stream()
+                .mapToInt(GetCartItemResponse::lineAmount)
+                .sum();
+
+        return new GetCartResponse(items, totalAmount);
+    }
 }
