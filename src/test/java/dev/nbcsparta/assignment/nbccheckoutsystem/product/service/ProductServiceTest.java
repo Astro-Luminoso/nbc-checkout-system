@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductSearchCondition;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.ProductSortType;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.exception.ProductNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
@@ -18,6 +20,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,7 +39,7 @@ class ProductServiceTest {
 
 	@Test
 	void getProductsReturnsAllProducts() throws Exception {
-		when(productRepository.findAll()).thenReturn(List.of(
+		List<Product> products = List.of(
 			product(
 				1L,
 				"무선 마우스",
@@ -54,15 +58,31 @@ class ProductServiceTest {
 				"DIGITAL",
 				"ON_SALE"
 			)
-		));
+		);
 
-		List<ProductResponse> responses = productService.getProducts();
+		ProductSearchCondition condition = new ProductSearchCondition(
+			null,
+			null,
+			null,
+			null,
+			ProductSortType.LATEST,
+			1,
+			10
+		);
+		when(productRepository.searchProducts(
+			condition.category(),
+			condition.minPrice(),
+			condition.maxPrice(),
+			condition.saleStatus(),
+			condition.toPageable()
+		)).thenReturn(new PageImpl<>(products, condition.toPageable(), products.size()));
+		Page<ProductResponse> responses = productService.getProducts(condition);
 
 		assertThat(responses).hasSize(2);
-		assertThat(responses)
+		assertThat(responses.getContent())
 			.extracting(ProductResponse::name)
 			.containsExactlyInAnyOrder("무선 마우스", "기계식 키보드");
-		assertThat(responses)
+		assertThat(responses.getContent())
 			.filteredOn(product -> product.name().equals("무선 마우스"))
 			.singleElement()
 			.satisfies(product -> {
