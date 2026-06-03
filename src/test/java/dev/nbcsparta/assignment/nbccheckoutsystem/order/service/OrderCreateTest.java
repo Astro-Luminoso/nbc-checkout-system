@@ -14,7 +14,11 @@ import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.PointExceedTotalCostException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
@@ -29,6 +33,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,11 +54,14 @@ class OrderCreateTest {
     @Mock
     private PaymentRepository paymentRepository;
 
+    @Mock
+    private MemberRepository memberRepository;
+
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(cartItemRepository, orderRepository, paymentRepository);
+        orderService = new OrderService(cartItemRepository, orderRepository, paymentRepository, memberRepository);
     }
 
     @Test
@@ -65,6 +73,7 @@ class OrderCreateTest {
         CartItem mouseCartItem = cartItem(12L, mouse, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 5_000);
 
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member(memberId, 10_000L)));
         when(cartItemRepository.findAllById(memberId, request.cartItemIds()))
                 .thenReturn(List.of(keyboardCartItem, mouseCartItem));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
@@ -115,6 +124,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 2);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         orderService.createOrder(1L, request);
@@ -128,6 +138,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 2);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         OutOfStockException exception = assertThrows(
@@ -150,6 +161,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         NotOnSaleException exception = assertThrows(
@@ -166,6 +178,7 @@ class OrderCreateTest {
     @Test
     void createOrderThrowsNoCartItemExceptionWhenSelectedCartItemsDoNotExist() {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of());
 
         NoCartItemException exception = assertThrows(
@@ -185,6 +198,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
 
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         ItemsNotMatchException exception = assertThrows(
@@ -198,6 +212,68 @@ class OrderCreateTest {
         assertAll(
                 () -> assertEquals("Number of Items we found and you want to purchase is not match. Perhaps the member is not unauthorised client?", exception.getMessage()),
                 () -> assertEquals(10, stockQuantity(product))
+        );
+    }
+
+    @Test
+    void createOrderThrowsMemberNotFoundExceptionWhenMemberDoesNotExist() {
+        OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
+        when(memberRepository.findById(1L)).thenReturn(Optional.empty());
+
+        MemberNotFoundException exception = assertThrows(
+                MemberNotFoundException.class,
+                () -> orderService.createOrder(1L, request)
+        );
+
+        verify(cartItemRepository, never()).findAllById(any(Long.class), anyList());
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+        assertEquals("사용자를 찾을 수 없습니다.", exception.getMessage());
+    }
+
+    @Test
+    void createOrderThrowsPointExceedTotalCostExceptionWhenUsePointExceedsTotalCost() throws Exception {
+        Product product = product(10L, "키보드", 20_000, 10);
+        CartItem cartItem = cartItem(11L, product, 1);
+        OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 20_001);
+
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 30_000L)));
+        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+
+        PointExceedTotalCostException exception = assertThrows(
+                PointExceedTotalCostException.class,
+                () -> orderService.createOrder(1L, request)
+        );
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(cartItemRepository, never()).deleteAll(anyList());
+        assertAll(
+                () -> assertEquals("Point Cannot exceed total cost", exception.getMessage()),
+                () -> assertEquals(9, stockQuantity(product))
+        );
+    }
+
+    @Test
+    void createOrderThrowsPointExceedTotalCostExceptionWhenUsePointExceedsMemberBalance() throws Exception {
+        Product product = product(10L, "키보드", 20_000, 10);
+        CartItem cartItem = cartItem(11L, product, 1);
+        OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 5_000);
+
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 4_999L)));
+        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+
+        PointExceedTotalCostException exception = assertThrows(
+                PointExceedTotalCostException.class,
+                () -> orderService.createOrder(1L, request)
+        );
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(paymentRepository, never()).save(any(Payment.class));
+        verify(cartItemRepository, never()).deleteAll(anyList());
+        assertAll(
+                () -> assertEquals("Point Cannot exceed total cost", exception.getMessage()),
+                () -> assertEquals(9, stockQuantity(product))
         );
     }
 
@@ -233,6 +309,13 @@ class OrderCreateTest {
         ReflectionTestUtils.setField(cartItem, "id", id);
         ReflectionTestUtils.setField(cartItem, "createdDate", LocalDateTime.now());
         return cartItem;
+    }
+
+    private Members member(Long id, Long pointBalance) {
+        Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
+        ReflectionTestUtils.setField(member, "id", id);
+        ReflectionTestUtils.setField(member, "pointBalance", pointBalance);
+        return member;
     }
 
     private Integer stockQuantity(Product product) {
