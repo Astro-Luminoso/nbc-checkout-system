@@ -10,14 +10,18 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     Optional<CartItem> findByMembersAndProduct(Members members, Product product);
     @Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.members.id = :memberId AND c.id IN :cartItemIds")
     List<CartItem> findAllById(@Param("memberId") Long memberId, @Param("cartItemIds") List<Long> cartItemIds);
 
-    // fetch join으로 N+1예방
 
-
+    @Query("""
+    select ci
+    from CartItem ci
+    join fetch ci.product
+    where ci.members = :members
+""")
+    List<CartItem> findAllByMembers(Members members);
 }
