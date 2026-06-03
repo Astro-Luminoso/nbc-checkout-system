@@ -35,7 +35,7 @@ public class CartItemService {
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
-        if (request.quantity() > product.getStock_quantity()){
+        if (request.quantity() > product.getStockQuantity()){
             throw new OutOfStockException();
         }
 
@@ -44,7 +44,7 @@ public class CartItemService {
                 .map(existing -> {
                     int newQuantity = existing.getQuantity() + request.quantity();
 
-                    if (newQuantity > product.getStock_quantity()){
+                    if (newQuantity > product.getStockQuantity()){
                         throw new OutOfStockException();
                     }
 

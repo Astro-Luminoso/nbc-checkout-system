@@ -18,9 +18,9 @@ public record ProductResponse(
 			product.getName(),
 			product.getDescription(),
 			product.getPrice(),
-			product.getStock_quantity(),
+			product.getStockQuantity(),
 			product.getCategory(),
-			product.getSale_price()
+			product.getSalePrice()
 		);
 	}
 }
