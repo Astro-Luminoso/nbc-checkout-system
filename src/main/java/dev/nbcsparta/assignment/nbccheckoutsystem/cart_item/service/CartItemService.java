@@ -58,7 +58,6 @@ public class CartItemService {
         return CartItemResponse.from(cartItem);
     }
 
-    // TODO:fetch-join으로 감싸서 N+1문제 예방하기
     @Transactional(readOnly = true)
     public GetCartResponse getCartItems(Long memberId) {
         Members members = memberRepository.findById(memberId)
