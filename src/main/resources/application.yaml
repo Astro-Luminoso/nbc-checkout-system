@@ -10,6 +10,7 @@ jwt:
 
 portone:
   base-url: "https://api.portone.io"
-  api-secret: ${PORTONE_API_SECRET}
-  store-id: ${PORTONE_STORE_ID}
-  channel-key: ${PORTONE_CHANNEL_KEY}
+  # 값이 없을 경우 대입될 임시 기본값(mock_value)을 설정
+  api-secret: ${PORTONE_API_SECRET:mock_secret_key}
+  store-id: ${PORTONE_STORE_ID:mock_store_id}
+  channel-key: ${PORTONE_CHANNEL_KEY:mock_channel_key}
