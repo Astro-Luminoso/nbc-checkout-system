@@ -1,10 +1,10 @@
-package dev.nbcsparta.assignment.nbccheckoutsystem.payment.dto;
+package dev.nbcsparta.assignment.nbccheckoutsystem.order.dto;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 
-public record PaymentData(
+public record CreateOrderData(
         Long orderId,
         String portOnePaymentId,
         int totalAmount,
@@ -12,14 +12,14 @@ public record PaymentData(
         OrderStatus orderStatus
 ) {
 
-    public static PaymentData from(Payment payment) {
+    public static CreateOrderData from(Payment payment) {
         Order order = payment.getOrder();
-        return new PaymentData(
+        return new CreateOrderData(
                 order.getId(),
                 payment.getPortOnePaymentId(),
                 payment.getTotalAmount(),
                 order.getUsedPoint(),
-                payment.getOrder().getOrderStatus()
+                order.getOrderStatus()
         );
     }
 }

@@ -20,7 +20,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NoCartItemException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NotOnSaleException;
@@ -83,7 +83,7 @@ class OrderCreateTest {
         });
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        OrderCreateResponse response = orderService.createOrder(memberId, request);
+        OrderResponse response = orderService.createOrder(memberId, request);
 
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);

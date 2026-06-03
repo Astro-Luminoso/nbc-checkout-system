@@ -1,7 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.controller;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping
-    public ResponseEntity<OrderCreateResponse> createOrder(
+    public ResponseEntity<OrderResponse> createOrder(
             @Valid @RequestBody OrderCreateRequest request,
             @AuthenticationPrincipal Long memberId
     ) {
