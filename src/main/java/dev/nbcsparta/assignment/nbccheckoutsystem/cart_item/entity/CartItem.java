@@ -36,7 +36,7 @@ public class CartItem {
 
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product productId;
+    private Product product;
 
     @Column(nullable = false)
     private Integer quantity;
@@ -48,7 +48,7 @@ public class CartItem {
 
     public CartItem(Members members, Product product, Integer quantity) {
         this.members = members;
-        this.productId = product;
+        this.product = product;
         this.quantity = quantity;
     }
     // 동일 상품 재담기 시에 수량 합산

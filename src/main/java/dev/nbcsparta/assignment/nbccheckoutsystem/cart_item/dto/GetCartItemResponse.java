@@ -13,11 +13,11 @@ public record GetCartItemResponse(
     public static GetCartItemResponse from(CartItem cartItem) {
         return new GetCartItemResponse(
             cartItem.getId(),
-            cartItem.getProductId().getId(),
-            cartItem.getProductId().getName(),
-            cartItem.getProductId().getPrice(),
+            cartItem.getProduct().getId(),
+            cartItem.getProduct().getName(),
+            cartItem.getProduct().getPrice(),
             cartItem.getQuantity(),
-            cartItem.getProductId().getPrice() * cartItem.getQuantity()
+            cartItem.getProduct().getPrice() * cartItem.getQuantity()
         );
     }
 }

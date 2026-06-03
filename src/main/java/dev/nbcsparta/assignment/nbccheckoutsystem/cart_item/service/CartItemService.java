@@ -32,7 +32,7 @@ public class CartItemService {
         Members members = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        Product product = productRepository.findById(request.product_id())
+        Product product = productRepository.findById(request.productId())
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
         if (request.quantity() > product.getStock_quantity()){
@@ -40,7 +40,7 @@ public class CartItemService {
         }
 
         CartItem cartItem = cartItemRepository
-                .findByMembersAndProductId(members, product)
+                .findByMembersAndProduct(members, product)
                 .map(existing -> {
                     int newQuantity = existing.getQuantity() + request.quantity();
 
@@ -58,6 +58,7 @@ public class CartItemService {
         return CartItemResponse.from(cartItem);
     }
 
+    // TODO:fetch-join으로 감싸서 N+1문제 예방하기
     @Transactional(readOnly = true)
     public GetCartResponse getCartItems(Long memberId) {
         Members members = memberRepository.findById(memberId)

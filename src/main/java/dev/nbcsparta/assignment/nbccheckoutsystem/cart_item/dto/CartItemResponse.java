@@ -11,7 +11,7 @@ public record CartItemResponse(
     public static CartItemResponse from(CartItem cartItem){
         return new CartItemResponse(
                 cartItem.getId(),
-                cartItem.getProductId().getId(),
+                cartItem.getProduct().getId(),
                 cartItem.getQuantity()
         );
     }
