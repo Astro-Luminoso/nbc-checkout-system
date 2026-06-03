@@ -1,14 +1,14 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.product.service;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductResponse;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductSearchCondition;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.exception.ProductNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
 
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,10 +19,15 @@ public class ProductService {
 
 	private final ProductRepository productRepository;
 
-	public List<ProductResponse> getProducts() {
-		return productRepository.findAll().stream()
-			.map(ProductResponse::from)
-			.toList();
+	public Page<ProductResponse> getProducts(ProductSearchCondition condition) {
+		return productRepository.searchProducts(
+				condition.category(),
+				condition.minPrice(),
+				condition.maxPrice(),
+				condition.saleStatus(),
+				condition.toPageable()
+			)
+			.map(ProductResponse::from);
 	}
 
 	public ProductResponse getProduct(Long productId) {
