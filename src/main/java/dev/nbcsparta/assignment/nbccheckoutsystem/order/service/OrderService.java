@@ -52,7 +52,7 @@ public class OrderService {
 
         List<OrderItem> orderItems = new ArrayList<>();
         for(CartItem item : cartItems) {
-            Product product = item.getProductId();
+            Product product = item.getProduct();
             if(product.getSaleStatus() != SaleStatus.ON_SALE) {
                 throw new NotOnSaleException();
             }
