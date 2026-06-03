@@ -1,3 +1,9 @@
 jwt:
   secret: bmJjLWNoZWNrb3V0LXN5c3RlbS1qd3Qtc2VjcmV0LWtleS1mb3ItdGVzdHM=
   expiration: 3600000
+
+portone:
+  base-url: "https://api.portone.io"
+  api-secret: ${PORTONE_API_SECRET:dummy-api-secret}
+  store-id: ${PORTONE_STORE_ID:dummy-store-id}
+  channel-key: ${PORTONE_CHANNEL_KEY:dummy-channel-key}
