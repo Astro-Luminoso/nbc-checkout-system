@@ -40,7 +40,7 @@ public class Members {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
-    private Long pointBalance;
+    private int pointBalance;
 
 
     public Members (String email, String password, String name, String phoneNumber) {
@@ -50,4 +50,11 @@ public class Members {
         this.phoneNumber = phoneNumber;
     }
 
+    public void deductPointBalance(int usedPoint) {
+        this.pointBalance -= usedPoint;
+    }
+
+    public void addPointBalance(int paymentAmount) {
+        this.pointBalance += (int) (paymentAmount * 0.01);
+    }
 }

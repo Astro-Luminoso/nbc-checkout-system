@@ -65,12 +65,12 @@ public class Order {
         orderItem.setOrder(this);
     }
 
-    public OrderStatus paymentResult(Long  paidAmount) {
+    public void paymentResult(Long paidAmount) {
         if ((this.totalAmount - this.usedPoint) == paidAmount ) {
-            orderStatus = OrderStatus.PAID;
+            this.orderStatus = OrderStatus.PAID;
+        } else {
+            this.orderStatus = OrderStatus.DECLINED;
         }
-
-        return this.orderStatus;
     }
 
 }

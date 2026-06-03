@@ -314,7 +314,7 @@ class OrderCreateTest {
     private Members member(Long id, Long pointBalance) {
         Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", id);
-        ReflectionTestUtils.setField(member, "pointBalance", pointBalance);
+        ReflectionTestUtils.setField(member, "pointBalance", pointBalance.intValue());
         return member;
     }
 
