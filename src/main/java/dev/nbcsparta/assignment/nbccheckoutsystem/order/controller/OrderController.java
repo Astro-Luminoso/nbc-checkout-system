@@ -3,8 +3,8 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.order.controller;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +21,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderCreateResponse> createOrder(
-            @RequestBody OrderCreateRequest request,
+            @Valid @RequestBody OrderCreateRequest request,
             @AuthenticationPrincipal Long memberId
     ) {
         if (memberId == null) {
