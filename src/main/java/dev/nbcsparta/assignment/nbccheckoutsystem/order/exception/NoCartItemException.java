@@ -1,8 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.exception;
 
-public class NoCartItemException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+
+public class NoCartItemException extends BusinessException {
 
     public NoCartItemException() {
-        super("No cart items found for the provided IDs.");
+        super(HttpStatus.NOT_FOUND, "No cart items found for the provided IDs.");
     }
 }

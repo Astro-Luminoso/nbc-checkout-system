@@ -1,7 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.exception;
 
-public class NotOnSaleException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+
+public class NotOnSaleException extends BusinessException {
+
     public NotOnSaleException() {
-        super("Product Is Not On Sale");
+        super(HttpStatus.CONFLICT, "Product Is Not On Sale");
     }
 }

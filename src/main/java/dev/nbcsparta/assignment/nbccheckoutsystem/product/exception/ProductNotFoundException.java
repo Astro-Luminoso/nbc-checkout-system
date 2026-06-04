@@ -1,8 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.product.exception;
 
-public class ProductNotFoundException extends RuntimeException {
+import org.springframework.http.HttpStatus;
 
-	public ProductNotFoundException() {
-		super("상품을 찾을 수 없습니다.");
-	}
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+
+public class ProductNotFoundException extends BusinessException {
+
+    public ProductNotFoundException() {
+        super(HttpStatus.NOT_FOUND, "상품을 찾을 수 없습니다.");
+    }
 }
