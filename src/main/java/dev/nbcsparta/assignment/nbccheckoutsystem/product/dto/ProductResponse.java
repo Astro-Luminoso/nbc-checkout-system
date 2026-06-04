@@ -1,6 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.product.dto;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus; // 추가
 
 public record ProductResponse(
 	Long id,
@@ -9,7 +10,8 @@ public record ProductResponse(
 	Integer price,
 	Integer stockQuantity,
 	String category,
-	String salePrice
+	String salePrice,
+	SaleStatus saleStatus
 ) {
 
 	public static ProductResponse from(Product product) {
@@ -20,7 +22,8 @@ public record ProductResponse(
 			product.getPrice(),
 			product.getStockQuantity(),
 			product.getCategory(),
-			product.getSalePrice()
+			product.getSalePrice(),
+			product.getSaleStatus()
 		);
 	}
 }

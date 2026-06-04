@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 
 public record CartItemRequest(
         @NotNull(message = "상품 ID는 필수 항목입니다.")
-        Long product_id,
+        Long productId,
 
         @NotNull(message = "수량은 필수 항목입니다.")
         @Min(value = 1, message = "장바구니에 최소 1개 이상 담아야 합니다.")

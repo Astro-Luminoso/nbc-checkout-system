@@ -3,6 +3,8 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,19 +38,18 @@ public class CartItem {
 
     @ManyToOne(fetch =FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product productId;
+    private Product product;
 
     @Column(nullable = false)
     private Integer quantity;
 
     @CreatedDate
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
     public CartItem(Members members, Product product, Integer quantity) {
         this.members = members;
-        this.productId = product;
+        this.product = product;
         this.quantity = quantity;
     }
     // 동일 상품 재담기 시에 수량 합산
@@ -56,4 +57,7 @@ public class CartItem {
         this.quantity += additionalQuantity;
     }
 
+    public void updateQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
 }
