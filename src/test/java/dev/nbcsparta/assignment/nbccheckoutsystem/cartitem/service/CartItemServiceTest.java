@@ -58,6 +58,8 @@ class CartItemServiceTest {
         when(cartItemRepository.save(any(CartItem.class))).thenReturn(savedCartItem);
 
         // when
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+        when(productRepository.findById(request.productId())).thenReturn(Optional.of(product));
 
         CartItemResponse response = cartItemService.addCartItem(memberId, request);
 
@@ -88,14 +90,13 @@ class CartItemServiceTest {
         when(cartItemRepository.findAllByMembers(any())).thenReturn(cartItems);
 
         // when
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
         GetCartResponse responses = cartItemService.getCartItems(memberId);
 
         // then
-        assertThat(responses).hasSameClassAs(2);
-
         assertThat(responses).isNotNull();
+        assertThat(responses.items()).hasSize(2);
     }
-
 
     // 3. 장바구니 수량 변경
 

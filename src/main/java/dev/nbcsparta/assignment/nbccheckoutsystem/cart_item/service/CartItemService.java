@@ -97,7 +97,7 @@ public class CartItemService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
 
         if (!cartItem.getMembers().getId().equals(memberId)) {
-            throw new IllegalArgumentException("회원님의 장바구니 항목만 삭제할 수 있습니다.");
+            throw new IllegalArgumentException("본인 장바구니 항목이 아닌 경우 삭제할 수 없습니다.");
         }
         cartItemRepository.delete(cartItem);
     }
