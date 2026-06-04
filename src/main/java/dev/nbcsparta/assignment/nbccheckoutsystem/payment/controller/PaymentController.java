@@ -2,7 +2,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.payment.controller;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.dto.PaymentConfirmRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.dto.PaymentConfirmResponse;
-import dev.nbcsparta.assignment.nbccheckoutsystem.payment.service.PaymentService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.service.PaymentCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final PaymentCommandService paymentCommandService;
 
     @PostMapping("/confirm")
     public ResponseEntity<PaymentConfirmResponse> confirmPayment(
             @Valid @RequestBody PaymentConfirmRequest request,
             @AuthenticationPrincipal Long memberId) {
-        PaymentConfirmResponse response = paymentService.confirmPayment(request, memberId);
+        PaymentConfirmResponse response = paymentCommandService.confirmPayment(request, memberId);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,5 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.member.domain;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.InvalidPointUseException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,10 +52,20 @@ public class Members {
     }
 
     public void deductPointBalance(int usedPoint) {
+        if (usedPoint < 0 || usedPoint > pointBalance) {
+            throw new InvalidPointUseException();
+        }
+
         this.pointBalance -= usedPoint;
     }
 
-    public void addPointBalance(int paymentAmount) {
-        this.pointBalance += (int) (paymentAmount * 0.01);
+    public void addPointBalance(int paidAmount) {
+        int earnPoint = (int) (paidAmount * 0.01);
+
+        if (earnPoint < 0) {
+            throw new InvalidPointUseException();
+        }
+
+        this.pointBalance += earnPoint;
     }
 }
