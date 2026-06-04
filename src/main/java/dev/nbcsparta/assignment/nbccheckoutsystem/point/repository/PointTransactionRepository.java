@@ -11,4 +11,6 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
 
     @Query("SELECT pt FROM PointTransaction pt WHERE pt.members.id = :memberId ORDER BY pt.createdDate DESC")
     List<PointTransaction> findByMemberId(@Param("memberId") Long memberId);
+
+    List<PointTransaction> findByOrderId(Long orderId);
 }
