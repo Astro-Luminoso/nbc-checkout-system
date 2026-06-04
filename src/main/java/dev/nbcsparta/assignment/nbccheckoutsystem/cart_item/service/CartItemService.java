@@ -8,7 +8,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,7 +74,7 @@ public class CartItemService {
     }
 
     @Transactional
-    public UpdateCartItemResponse updateCartItem(Long memberId, Long cartItemId, @Valid CartItemRequest request) {
+    public UpdateCartItemResponse updateCartItem(Long memberId, Long cartItemId, UpdateCartItemRequest request) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
 
@@ -91,4 +90,16 @@ public class CartItemService {
         cartItem.updateQuantity(request.quantity());
         return new UpdateCartItemResponse(cartItem.getId(), cartItem.getQuantity());
     }
+
+    @Transactional
+    public void deleteCartItem(Long memberId, Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
+
+        if (!cartItem.getMembers().getId().equals(memberId)) {
+            throw new IllegalArgumentException("본인 장바구니 항목이 아닌 경우 삭제할 수 없습니다.");
+        }
+        cartItemRepository.delete(cartItem);
+    }
+
 }
