@@ -68,7 +68,7 @@ public class CartItemController {
             HttpStatus status = e.getMessage().contains("본인")?
                     HttpStatus.FORBIDDEN: HttpStatus.NOT_FOUND;
             return ResponseEntity.status(status)
-                    .body(Map.of("Massage", e.getMessage()));
+                    .body(Map.of("Message", e.getMessage()));
         }
 
     }
