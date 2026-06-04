@@ -26,4 +26,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     where ci.members = :members
 """)
     List<CartItem> findAllByMembers(Members members);
+
+    void deleteAllByMembers(Members members);
 }

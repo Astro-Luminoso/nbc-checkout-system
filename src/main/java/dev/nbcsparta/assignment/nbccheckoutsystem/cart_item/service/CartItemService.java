@@ -24,15 +24,15 @@ public class CartItemService {
     private final ProductRepository productRepository;
 
     @Transactional
-    public CartItemResponse addCartItem(Long memberId, CartItemRequest request){
+    public CartItemResponse addCartItem(Long memberId, CartItemRequest request) {
 
         Members members = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
         Product product = productRepository.findById(request.productId())
-                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
 
-        if (request.quantity() > product.getStockQuantity()){
+        if (request.quantity() > product.getStockQuantity()) {
             throw new OutOfStockException();
         }
 
@@ -41,14 +41,14 @@ public class CartItemService {
                 .map(existing -> {
                     int newQuantity = existing.getQuantity() + request.quantity();
 
-                    if (newQuantity > product.getStockQuantity()){
+                    if (newQuantity > product.getStockQuantity()) {
                         throw new OutOfStockException();
                     }
 
                     existing.addQuantity(request.quantity());
                     return existing;
                 })
-                .orElseGet(()-> cartItemRepository.save(
+                .orElseGet(() -> cartItemRepository.save(
                         new CartItem(members, product, request.quantity())
                 ));
 
@@ -76,14 +76,14 @@ public class CartItemService {
     @Transactional
     public UpdateCartItemResponse updateCartItem(Long memberId, Long cartItemId, UpdateCartItemRequest request) {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
-                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
 
-        if (!cartItem.getMembers().getId().equals(memberId)){
+        if (!cartItem.getMembers().getId().equals(memberId)) {
             throw new IllegalArgumentException("회원님의 장바구니만 변경할 수 있습니다.");
         }
 
         Product product = cartItem.getProduct();
-        if (request.quantity() > product.getStockQuantity()){
+        if (request.quantity() > product.getStockQuantity()) {
             throw new OutOfStockException();
         }
 
@@ -102,4 +102,11 @@ public class CartItemService {
         cartItemRepository.delete(cartItem);
     }
 
+    @Transactional
+    public void deleteAllCartItems(Long memberId) {
+        Members members = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        cartItemRepository.deleteAllByMembers(members);
+    }
 }

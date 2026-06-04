@@ -250,4 +250,39 @@ class CartItemServiceTest {
         ReflectionTestUtils.setField(cartItem, "product", product);
         return cartItem;
     }
+
+    // 4. 장바구니 전체 비우기
+
+    @Test
+    @DisplayName("장바구니 전체 비우기 성공")
+    void deleteALlCartItemsSuccess() throws Exception{
+
+        // given
+        Long memberId = 1L;
+        Members member = createMember(memberId);
+
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
+
+        // when - 실제 서비스 메서드 호출
+        cartItemService.deleteAllCartItems(memberId);
+
+        // then
+        verify(cartItemRepository, times(1)).deleteAllByMembers(member);
+
+    }
+
+    @Test
+    @DisplayName("장바구니 전체 비우기 실패 - 존재하지 않는 회원")
+    void deleteAllCartItemsThrowsNotFound() throws Exception{
+        // given
+        Long memberId = 999L;
+
+        // 존재하지 않는 회원 empty() 반환
+        when(memberRepository.findById(memberId)).thenReturn(Optional.empty());
+
+        // when & then
+        assertThatThrownBy(() -> cartItemService.deleteAllCartItems(memberId))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("존재하지 않는 회원입니다.");
+    }
 }

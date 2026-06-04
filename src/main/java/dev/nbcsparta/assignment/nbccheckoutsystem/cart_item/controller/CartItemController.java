@@ -6,6 +6,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemServ
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -87,5 +88,13 @@ public class CartItemController {
             return ResponseEntity.status(status)
                     .body(Map.of("message", e.getMessage()));
         }
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteAllCartItems(
+            @AuthenticationPrincipal Long memberId
+    ){
+        cartItemService.deleteAllCartItems(memberId);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
