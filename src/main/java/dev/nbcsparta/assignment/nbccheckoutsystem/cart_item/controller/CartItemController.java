@@ -54,7 +54,7 @@ public class CartItemController {
     public ResponseEntity<?> updateCartItem(
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long cartItemId,
-            @Valid @RequestBody CartItemRequest request
+            @Valid @RequestBody UpdateCartItemRequest request
     ){
         try {
             UpdateCartItemResponse response = cartItemService.updateCartItem(memberId, cartItemId, request);
@@ -68,8 +68,24 @@ public class CartItemController {
             HttpStatus status = e.getMessage().contains("본인")?
                     HttpStatus.FORBIDDEN: HttpStatus.NOT_FOUND;
             return ResponseEntity.status(status)
-                    .body(Map.of("Message", e.getMessage()));
+                    .body(Map.of("message", e.getMessage()));
         }
 
+    }
+
+    @DeleteMapping("/{cartItemId}")
+    public ResponseEntity<?> deleteCartItem(
+            @AuthenticationPrincipal Long memberId,
+            @PathVariable Long cartItemId
+    ){
+        try{
+            cartItemService.deleteCartItem(memberId, cartItemId);
+            return ResponseEntity.ok(ApiResponse.success("장바구니 항목이 성공적으로 삭제되었습니다."));
+        } catch (IllegalArgumentException e){
+            HttpStatus status = e.getMessage().contains("본인")?
+                    HttpStatus.FORBIDDEN: HttpStatus.NOT_FOUND;
+            return ResponseEntity.status(status)
+                    .body(Map.of("message", e.getMessage()));
+        }
     }
 }
