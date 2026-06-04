@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
@@ -19,8 +18,8 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemR
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.CreateOrderData;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NoCartItemException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NotOnSaleException;
@@ -28,6 +27,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OutOfStockExce
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import java.lang.reflect.Constructor;
@@ -57,11 +57,20 @@ class OrderCreateTest {
     @Mock
     private MemberRepository memberRepository;
 
+    @Mock
+    private PointTransactionRepository pointTransactionRepository;
+
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(cartItemRepository, orderRepository, paymentRepository, memberRepository);
+        orderService = new OrderService(
+                cartItemRepository,
+                orderRepository,
+                paymentRepository,
+                memberRepository,
+                pointTransactionRepository
+        );
     }
 
     @Test
@@ -83,7 +92,7 @@ class OrderCreateTest {
         });
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        OrderResponse response = orderService.createOrder(memberId, request);
+        CreateOrderData response = orderService.createOrder(memberId, request);
 
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
@@ -94,12 +103,11 @@ class OrderCreateTest {
         Payment savedPayment = paymentCaptor.getValue();
 
         assertAll(
-                () -> assertTrue(response.success()),
-                () -> assertEquals(1001L, response.data().orderId()),
-                () -> assertFalse(response.data().portOnePaymentId().isBlank()),
-                () -> assertEquals(50_000, response.data().totalAmount()),
-                () -> assertEquals(5_000, response.data().usedPoint()),
-                () -> assertEquals("STANDBY", response.data().orderStatus().name()),
+                () -> assertEquals(1001L, response.orderId()),
+                () -> assertFalse(response.portOnePaymentId().isBlank()),
+                () -> assertEquals(50_000, response.totalAmount()),
+                () -> assertEquals(5_000, response.usedPoint()),
+                () -> assertEquals("STANDBY", response.orderStatus().name()),
 
                 () -> assertEquals(memberId, savedOrder.getMemberId()),
                 () -> assertEquals(55_000, savedOrder.getTotalAmount()),
