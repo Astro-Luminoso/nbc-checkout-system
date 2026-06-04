@@ -24,6 +24,9 @@ public class OrderItem {
     private Long id;
 
     @Column(nullable = false)
+    private String name;
+
+    @Column(nullable = false)
     private int price;
 
     @Column(nullable = false)
@@ -37,7 +40,8 @@ public class OrderItem {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    public OrderItem(int price, Integer quantities, Product product) {
+    public OrderItem(String name, int price, Integer quantities, Product product) {
+        this.name = name;
         this.price = price;
         this.quantities = quantities;
         this.product = product;
