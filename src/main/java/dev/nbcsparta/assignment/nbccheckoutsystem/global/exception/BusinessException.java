@@ -1,4 +1,4 @@
-package dev.nbcsparta.assignment.nbccheckoutsystem.global.error;
+package dev.nbcsparta.assignment.nbccheckoutsystem.global.exception;
 
 import org.springframework.http.HttpStatus;
 
