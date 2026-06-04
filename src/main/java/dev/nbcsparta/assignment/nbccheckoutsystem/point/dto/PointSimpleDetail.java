@@ -16,10 +16,7 @@ public record PointSimpleDetail(
             switch (transaction.getType()) {
                 case USE -> used += transaction.getAmount();
                 case EARN -> earned += transaction.getAmount();
-                case USE_CANCEL -> {
-                    used -= transaction.getAmount();
-                    earned += transaction.getAmount();
-                }
+                case USE_CANCEL -> used -= transaction.getAmount();
                 case EARN_CANCEL -> earned -= transaction.getAmount();
             }
         }
