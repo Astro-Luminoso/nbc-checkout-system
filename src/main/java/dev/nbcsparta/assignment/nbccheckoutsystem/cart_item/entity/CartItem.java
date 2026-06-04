@@ -3,6 +3,8 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,7 +44,6 @@ public class CartItem {
     private Integer quantity;
 
     @CreatedDate
-
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
@@ -56,4 +57,7 @@ public class CartItem {
         this.quantity += additionalQuantity;
     }
 
+    public void updateQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
 }
