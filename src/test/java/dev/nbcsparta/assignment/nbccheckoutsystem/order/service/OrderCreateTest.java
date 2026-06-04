@@ -105,7 +105,7 @@ class OrderCreateTest {
         assertAll(
                 () -> assertEquals(1001L, response.orderId()),
                 () -> assertFalse(response.portOnePaymentId().isBlank()),
-                () -> assertEquals(50_000, response.totalAmount()),
+                () -> assertEquals(55_000, response.totalAmount()),
                 () -> assertEquals(5_000, response.usedPoint()),
                 () -> assertEquals("STANDBY", response.orderStatus().name()),
 

@@ -17,7 +17,7 @@ public record CreateOrderData(
         return new CreateOrderData(
                 order.getId(),
                 payment.getPortOnePaymentId(),
-                payment.getPaidAmount(),
+                order.getTotalAmount(),
                 order.getUsedPoint(),
                 order.getOrderStatus()
         );
