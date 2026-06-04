@@ -8,6 +8,6 @@ public record PaymentSimpleDetail(
         int amount
 ) {
         public static PaymentSimpleDetail from(Payment payment) {
-            return new PaymentSimpleDetail(payment.getStatus(), payment.getTotalAmount());
+            return new PaymentSimpleDetail(payment.getStatus(), payment.getPaidAmount());
         }
 }
