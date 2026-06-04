@@ -3,6 +3,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
@@ -116,7 +117,7 @@ class GetOrderTest {
     }
 
     @Test
-    void getOrderDetailReturnsZeroPointWhenPointTransactionsDoNotExist() {
+    void getOrderDetailReturnsNullPointWhenPointTransactionsDoNotExist() {
         Long orderId = 100L;
         long memberId = 1L;
         Order order = order(
@@ -132,10 +133,7 @@ class GetOrderTest {
 
         SpecificOrderDetail response = orderService.getOrderDetail(orderId, memberId);
 
-        Assertions.assertAll(
-                () -> Assertions.assertEquals(0, response.point().used()),
-                () -> Assertions.assertEquals(0, response.point().earned())
-        );
+        assertNull(response.point());
 
         verify(orderRepository).findOrderInFullDetailById(orderId);
         verify(pointTransactionRepository).findByOrderId(orderId);
