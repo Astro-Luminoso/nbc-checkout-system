@@ -21,6 +21,6 @@ public record PointSimpleDetail(
             }
         }
 
-        return new PointSimpleDetail(used, earned);
+        return (pointTransaction.isEmpty()) ? null : new PointSimpleDetail(used, earned);
     }
 }
