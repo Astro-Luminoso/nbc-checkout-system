@@ -1,16 +1,14 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemRequest;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.CartItemResponse;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.GetCartItemResponse;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.GetCartResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.OutOfStockException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,5 +72,23 @@ public class CartItemService {
                 .sum();
 
         return new GetCartResponse(items, totalAmount);
+    }
+
+    @Transactional
+    public UpdateCartItemResponse updateCartItem(Long memberId, Long cartItemId, @Valid CartItemRequest request) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
+
+        if (!cartItem.getMembers().getId().equals(memberId)){
+            throw new IllegalArgumentException("회원님의 장바구니만 변경할 수 있습니다.");
+        }
+
+        Product product = cartItem.getProduct();
+        if (request.quantity() > product.getStockQuantity()){
+            throw new OutOfStockException();
+        }
+
+        cartItem.updateQuantity(request.quantity());
+        return new UpdateCartItemResponse(cartItem.getId(), cartItem.getQuantity());
     }
 }
