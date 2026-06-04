@@ -1,6 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.entity;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,6 +50,9 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems;
 
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Payment payment;
+
     // ========================
 
     public Order(int totalAmount, int usedPoint, Long memberId, List<OrderItem> orderItems) {
@@ -72,5 +76,4 @@ public class Order {
 
         return this.orderStatus;
     }
-
 }
