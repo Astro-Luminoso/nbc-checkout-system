@@ -50,6 +50,7 @@ public class Payment {
     public Payment(Order order) {
         this.order = order;
         this.portOnePaymentId = UUID.randomUUID().toString();
+        this.paidAmount = order.getTotalAmount() - order.getUsedPoint();
         this.status = PaymentStatus.PENDING;
     }
 
