@@ -1,7 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception;
 
-public class OutOfStockException extends RuntimeException{
-    public OutOfStockException(){
-        super("재고가 부족합니다.");
+import org.springframework.http.HttpStatus;
+
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+
+public class OutOfStockException extends BusinessException {
+
+    public OutOfStockException() {
+        super(HttpStatus.CONFLICT, "재고가 부족합니다.");
     }
 }

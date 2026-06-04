@@ -11,3 +11,10 @@ spring:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:3600000}
+
+portone:
+  base-url: "https://api.portone.io"
+  # 값이 없을 경우 대입될 임시 기본값(mock_value)을 설정
+  api-secret: ${PORTONE_API_SECRET:dummy-api-secret}
+  store-id: ${PORTONE_STORE_ID:dummy-store-id}
+  channel-key: ${PORTONE_CHANNEL_KEY:dummy-channel-key}

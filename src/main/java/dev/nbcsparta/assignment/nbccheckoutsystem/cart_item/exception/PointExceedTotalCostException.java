@@ -1,7 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception;
 
-public class PointExceedTotalCostException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+
+public class PointExceedTotalCostException extends BusinessException {
+
     public PointExceedTotalCostException() {
-        super("Point Cannot exceed total cost");
+        super(HttpStatus.BAD_REQUEST, "Point Cannot exceed total cost");
     }
 }

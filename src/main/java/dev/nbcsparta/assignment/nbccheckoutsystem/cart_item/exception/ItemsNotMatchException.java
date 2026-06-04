@@ -1,7 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception;
 
-public class ItemsNotMatchException extends RuntimeException {
+import org.springframework.http.HttpStatus;
+
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+
+public class ItemsNotMatchException extends BusinessException {
+
     public ItemsNotMatchException() {
-        super("Number of Items we found and you want to purchase is not match. Perhaps the member is not unauthorised client?");
+        super(HttpStatus.FORBIDDEN, "Number of Items we found and you want to purchase is not match. Perhaps the member is not unauthorised client?");
     }
 }

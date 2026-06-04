@@ -1,8 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception;
 
+import org.springframework.http.HttpStatus;
 
-public class CartItemNotFoundException extends RuntimeException{
-    public CartItemNotFoundException(){
-        super("존재하지 않는 장바구니 항목입니다.");
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+
+public class CartItemNotFoundException extends BusinessException {
+
+    public CartItemNotFoundException() {
+        super(HttpStatus.NOT_FOUND, "존재하지 않는 장바구니 항목입니다.");
     }
 }
