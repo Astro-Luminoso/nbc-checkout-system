@@ -1,11 +1,8 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.dto;
 
-public record OrderResponse(
+public record OrderResponse <T>(
         boolean success,
-        CreateOrderData data
+        T data
 ) {
 
-    public static OrderResponse from(CreateOrderData createOrderData) {
-        return new OrderResponse(createOrderData != null, createOrderData);
-    }
 }
