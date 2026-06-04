@@ -53,6 +53,14 @@ public class OrderService {
             throw new ItemsNotMatchException();
         }
 
+        int totalCost = cartItems.stream()
+                .mapToInt(item -> item.getProduct().getPrice() * item.getQuantity())
+                .sum();
+
+        if (totalCost < request.usePoint() || member.getPointBalance() < request.usePoint()) {
+            throw new PointExceedTotalCostException();
+        }
+
         List<OrderItem> orderItems = new ArrayList<>();
         for(CartItem item : cartItems) {
             Product product = item.getProduct();
@@ -66,12 +74,6 @@ public class OrderService {
 
             orderItems.add(new OrderItem(product.getName(), product.getPrice(), item.getQuantity(), product));
             product.deductStockValue(item.getQuantity());
-        }
-
-        int totalCost = orderItems.stream().mapToInt(item -> item.getPrice() * item.getQuantities()).sum();
-
-        if (totalCost < request.usePoint() || member.getPointBalance() < request.usePoint()) {
-            throw new PointExceedTotalCostException();
         }
 
         Order order = new Order(totalCost, request.usePoint(), memberId, orderItems);

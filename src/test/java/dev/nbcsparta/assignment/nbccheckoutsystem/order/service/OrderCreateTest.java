@@ -82,7 +82,7 @@ class OrderCreateTest {
         CartItem mouseCartItem = cartItem(12L, mouse, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 5_000);
 
-        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member(memberId, 10_000L)));
+        when(memberRepository.findById(memberId)).thenReturn(Optional.of(member(memberId, 10_000)));
         when(cartItemRepository.findAllById(memberId, request.cartItemIds()))
                 .thenReturn(List.of(keyboardCartItem, mouseCartItem));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
@@ -118,7 +118,7 @@ class OrderCreateTest {
 
                 () -> assertSame(savedOrder, savedPayment.getOrder()),
                 () -> assertFalse(savedPayment.getPortOnePaymentId().isBlank()),
-//                () -> assertEquals(50_000, savedPayment.getPaidAmount()),
+                () -> assertEquals(50_000, savedPayment.getPaidAmount()),
                 () -> assertEquals("PENDING", savedPayment.getStatus().name()),
 
                 () -> assertEquals(8, stockQuantity(keyboard)),
@@ -132,7 +132,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 2);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         orderService.createOrder(1L, request);
@@ -146,7 +146,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 2);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         OutOfStockException exception = assertThrows(
@@ -169,7 +169,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         NotOnSaleException exception = assertThrows(
@@ -186,7 +186,7 @@ class OrderCreateTest {
     @Test
     void createOrderThrowsNoCartItemExceptionWhenSelectedCartItemsDoNotExist() {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of());
 
         NoCartItemException exception = assertThrows(
@@ -206,7 +206,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
 
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0L)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         ItemsNotMatchException exception = assertThrows(
@@ -245,7 +245,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 20_001);
 
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 30_000L)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 30_000)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         PointExceedTotalCostException exception = assertThrows(
@@ -258,7 +258,7 @@ class OrderCreateTest {
         verify(cartItemRepository, never()).deleteAll(anyList());
         assertAll(
                 () -> assertEquals("Point Cannot exceed total cost", exception.getMessage()),
-                () -> assertEquals(9, stockQuantity(product))
+                () -> assertEquals(10, stockQuantity(product))
         );
     }
 
@@ -268,7 +268,7 @@ class OrderCreateTest {
         CartItem cartItem = cartItem(11L, product, 1);
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 5_000);
 
-        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 4_999L)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 4_999)));
         when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         PointExceedTotalCostException exception = assertThrows(
@@ -281,7 +281,7 @@ class OrderCreateTest {
         verify(cartItemRepository, never()).deleteAll(anyList());
         assertAll(
                 () -> assertEquals("Point Cannot exceed total cost", exception.getMessage()),
-                () -> assertEquals(9, stockQuantity(product))
+                () -> assertEquals(10, stockQuantity(product))
         );
     }
 
@@ -319,7 +319,7 @@ class OrderCreateTest {
         return cartItem;
     }
 
-    private Members member(Long id, Long pointBalance) {
+    private Members member(Long id, int pointBalance) {
         Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", id);
         ReflectionTestUtils.setField(member, "pointBalance", pointBalance);
