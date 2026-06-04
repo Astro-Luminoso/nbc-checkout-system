@@ -31,7 +31,7 @@ public class Payment {
     private String portOnePaymentId;
 
     @Column(nullable = false)
-    private int totalAmount;
+    private int paidAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -50,7 +50,20 @@ public class Payment {
     public Payment(Order order) {
         this.order = order;
         this.portOnePaymentId = UUID.randomUUID().toString();
-        this.totalAmount = order.getTotalAmount() - order.getUsedPoint();
         this.status = PaymentStatus.PENDING;
+    }
+
+    public void confirmSuccess(String portOnePaymentId, LocalDateTime paidAt) {
+        this.portOnePaymentId = portOnePaymentId;
+        this.status = PaymentStatus.COMPLETED;
+        this.paidAt = paidAt;
+    }
+
+    public void confirmFailed() {
+        this.status = PaymentStatus.FAILED;
+    }
+
+    public void setPaidAmount(int pgAmount) {
+        this.paidAmount = pgAmount;
     }
 }

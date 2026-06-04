@@ -30,7 +30,7 @@ class MemberServiceTest {
         Long memberId = 1L;
         Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", memberId);
-        ReflectionTestUtils.setField(member, "pointBalance", 10000L);
+        ReflectionTestUtils.setField(member, "pointBalance", 10000);
 
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
