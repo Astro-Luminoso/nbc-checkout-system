@@ -2,7 +2,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.order.exception;
 
 import org.springframework.http.HttpStatus;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.global.error.BusinessException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.BusinessException;
 
 public class OutOfStockException extends BusinessException {
 
