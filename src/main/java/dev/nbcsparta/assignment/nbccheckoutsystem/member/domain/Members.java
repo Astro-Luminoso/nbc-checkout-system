@@ -1,15 +1,18 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.member.domain;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.InvalidPointUseException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "members")
+@EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
 public class Members {
@@ -38,6 +41,8 @@ public class Members {
     @LastModifiedDate
     private LocalDateTime updatedDate;
 
+    private int pointBalance;
+
 
     public Members (String email, String password, String name, String phoneNumber) {
         this.email = email;
@@ -46,4 +51,39 @@ public class Members {
         this.phoneNumber = phoneNumber;
     }
 
+    public void deductPointBalance(int usedPoint) {
+        if (usedPoint < 0 || usedPoint > pointBalance) {
+            throw new InvalidPointUseException();
+        }
+
+        this.pointBalance -= usedPoint;
+    }
+
+    public void addPointBalance(int paidAmount) {
+        int earnPoint = (int) (paidAmount * 0.01);
+
+        if (earnPoint < 0) {
+            throw new InvalidPointUseException();
+        }
+
+        this.pointBalance += earnPoint;
+    }
+
+    // 환불 시 사용 포인트 복구
+    public void restoreUsedPoint(int usedPoint) {
+        if (usedPoint < 0) {
+            throw new InvalidPointUseException();
+        }
+
+        this.pointBalance += usedPoint;
+    }
+
+    // 환불 시 결제 적립 포인트 회수
+    public void cancelEarnedPoint(int earnedPoint) {
+        if (earnedPoint < 0 || earnedPoint > pointBalance) {
+            throw new InvalidPointUseException();
+        }
+
+        this.pointBalance -= earnedPoint;
+    }
 }

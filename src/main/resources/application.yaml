@@ -1,3 +1,21 @@
 spring:
   application:
     name: nbc-checkout-system
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+portone:
+  base-url: "https://api.portone.io"
+  # 값이 없을 경우 대입될 임시 기본값(mock_value)을 설정
+  api-secret: ${PORTONE_API_SECRET:dummy-api-secret}
+  store-id: ${PORTONE_STORE_ID:dummy-store-id}
+  channel-key: ${PORTONE_CHANNEL_KEY:dummy-channel-key}
+  webhook-secret: ${PORTONE_WEBHOOK_SECRET:ZHVtbXktd2ViaG9vay1zZWNyZXQ=}

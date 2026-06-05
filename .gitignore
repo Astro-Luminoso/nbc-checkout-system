@@ -45,3 +45,6 @@ AGENTS.md
 .claude/
 CLAUDE.md
 
+# Local Spring profile file (H2) - keep local DB config out of VCS
+src/main/resources/application-local.yaml
+

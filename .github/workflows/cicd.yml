@@ -9,16 +9,16 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: ["chore/*"]
+    branches: ["cicd/*"]
   pull_request:
-    branches: [ "main", "dev", "feat/*", "fix/*" ]
+    branches: [ "main", "dev", "feature/*", "fix/*" ]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
