@@ -64,6 +64,10 @@ public class Payment {
         this.status = PaymentStatus.FAILED;
     }
 
+    public void refund() {
+        this.status = PaymentStatus.REFUNDED;
+    }
+
     public void setPaidAmount(int pgAmount) {
         this.paidAmount = pgAmount;
     }
