@@ -8,12 +8,10 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemR
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.SpecificOrderDetail;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NotOnSaleException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OrderNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OutOfStockException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.CreateOrderData;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NoCartItemException;
@@ -25,6 +23,10 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransact
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,5 +97,17 @@ public class OrderService {
         List<PointTransaction> pointTransactions = pointTransactionRepository.findByOrderId(orderId);
 
         return SpecificOrderDetail.from(order, pointTransactions);
+    }
+
+    public MyOrderDetail getMyOrderDetail(long memberId, Pageable pageable) {
+
+        Pageable forcedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "createdDate"));
+
+        Page<SimpleOrderDetail> detail = orderRepository.findByMemberIdFormatOfSimpleOrderDetail(memberId, forcedPageable);
+
+        return MyOrderDetail.from(detail);
     }
 }

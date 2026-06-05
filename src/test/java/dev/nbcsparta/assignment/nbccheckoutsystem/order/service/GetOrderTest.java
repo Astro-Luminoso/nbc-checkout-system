@@ -1,5 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -9,10 +11,13 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedExc
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.MyOrderDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderItemDetail;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.SimpleOrderDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.SpecificOrderDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OrderNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
@@ -21,14 +26,20 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepo
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransaction;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransactionType;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -212,6 +223,104 @@ class GetOrderTest {
         Assertions.assertEquals("Client Not Match", exception.getMessage());
         verify(orderRepository).findOrderInFullDetailById(orderId);
         verify(pointTransactionRepository, never()).findByOrderId(orderId);
+    }
+
+    @Test
+    void getMyOrderDetailReturnsPagedOrdersForMember() {
+        long memberId = 1L;
+        Pageable requestPageable = PageRequest.of(0, 20);
+        List<SimpleOrderDetail> orders = List.of(
+                new SimpleOrderDetail(
+                        1001L,
+                        OrderStatus.PAID,
+                        78_000,
+                        LocalDateTime.of(2026, 5, 29, 10, 0)
+                ),
+                new SimpleOrderDetail(
+                        1000L,
+                        OrderStatus.STANDBY,
+                        32_000,
+                        LocalDateTime.of(2026, 5, 28, 9, 30)
+                )
+        );
+
+        when(orderRepository.findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(orders, invocation.getArgument(1), 2));
+
+        MyOrderDetail response = orderService.getMyOrderDetail(memberId, requestPageable);
+
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(2, response.content().size()),
+                () -> Assertions.assertEquals(0, response.page()),
+                () -> Assertions.assertEquals(20, response.size()),
+                () -> Assertions.assertEquals(2, response.totalElements()),
+                () -> Assertions.assertEquals(1, response.totalPages())
+        );
+
+        SimpleOrderDetail firstOrder = response.content().get(0);
+
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(1001L, firstOrder.orderId()),
+                () -> Assertions.assertEquals(OrderStatus.PAID, firstOrder.status()),
+                () -> Assertions.assertEquals(78_000, firstOrder.totalAmount()),
+                () -> Assertions.assertEquals(
+                        LocalDateTime.of(2026, 5, 29, 10, 0),
+                        firstOrder.orderedAt()
+                )
+        );
+
+        verify(orderRepository).findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class));
+    }
+
+    @Test
+    void getMyOrderDetailForcesLatestSortAndKeepsRequestedPageAndSize() {
+        long memberId = 1L;
+        Pageable requestPageable = PageRequest.of(
+                2,
+                5,
+                Sort.by(Sort.Direction.ASC, "totalAmount")
+        );
+
+        when(orderRepository.findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(1), 0));
+
+        orderService.getMyOrderDetail(memberId, requestPageable);
+
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(orderRepository).findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), pageableCaptor.capture());
+
+        Pageable actualPageable = pageableCaptor.getValue();
+
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(2, actualPageable.getPageNumber()),
+                () -> Assertions.assertEquals(5, actualPageable.getPageSize()),
+                () -> Assertions.assertEquals(
+                        Sort.Direction.DESC,
+                        actualPageable.getSort().getOrderFor("createdDate").getDirection()
+                ),
+                () -> Assertions.assertNull(actualPageable.getSort().getOrderFor("totalAmount"))
+        );
+    }
+
+    @Test
+    void getMyOrderDetailReturnsEmptyPageWhenMemberHasNoOrders() {
+        long memberId = 1L;
+        Pageable requestPageable = PageRequest.of(0, 20);
+
+        when(orderRepository.findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class)))
+                .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(1), 0));
+
+        MyOrderDetail response = orderService.getMyOrderDetail(memberId, requestPageable);
+
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(response.content().isEmpty()),
+                () -> Assertions.assertEquals(0, response.page()),
+                () -> Assertions.assertEquals(20, response.size()),
+                () -> Assertions.assertEquals(0, response.totalElements()),
+                () -> Assertions.assertEquals(0, response.totalPages())
+        );
+
+        verify(orderRepository).findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class));
     }
 
     private Order order(
