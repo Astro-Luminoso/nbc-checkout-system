@@ -76,4 +76,10 @@ public class Order {
             this.orderStatus = OrderStatus.DECLINED;
         }
     }
+
+    public void cancelOrder() {
+        this.orderItems.forEach(item -> item.getProduct().restoreStockValue(item.getQuantities()));
+        this.payment.cancelPayment();
+        this.orderStatus = OrderStatus.CANCELLED;
+    }
 }
