@@ -7,3 +7,4 @@ portone:
   api-secret: ${PORTONE_API_SECRET:dummy-api-secret}
   store-id: ${PORTONE_STORE_ID:dummy-store-id}
   channel-key: ${PORTONE_CHANNEL_KEY:dummy-channel-key}
+  webhook-secret: ${PORTONE_WEBHOOK_SECRET:ZHVtbXktd2ViaG9vay1zZWNyZXQ=}
