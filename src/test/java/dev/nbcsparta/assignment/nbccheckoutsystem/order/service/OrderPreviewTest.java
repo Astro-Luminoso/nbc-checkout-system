@@ -1,8 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -162,11 +160,11 @@ class OrderPreviewTest {
         JsonNode item = response.path("data").path("items").get(0);
 
         assertAll(
-                () -> assertEquals(true, response.path("success").asBoolean()),
-                () -> assertEquals(10L, item.path("productId").asLong()),
-                () -> assertEquals("무선 키보드", item.path("productName").asText()),
+                () -> assertTrue(response.path("success").asBoolean()),
+                () -> assertEquals(10L, item.path("id").asLong()),
+                () -> assertEquals("무선 키보드", item.path("name").asString()),
                 () -> assertEquals(39_000, item.path("price").asInt()),
-                () -> assertEquals(2, item.path("quantity").asInt()),
+                () -> assertEquals(2, item.path("quantities").asInt()),
                 () -> assertEquals(78_000, response.path("data").path("totalAmount").asInt())
         );
     }
