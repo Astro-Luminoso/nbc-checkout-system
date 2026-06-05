@@ -120,7 +120,7 @@ class CartItemServiceTest {
         // then
         assertThat(response.cartItemId()).isEqualTo(cartItemId);
         assertThat(response.quantity()).isEqualTo(5);
-        assertThat(cartItem.getQuantity()).isEqualTo(5); // 엔티티 자체의 수량도 변경되었는지 검증
+        assertThat(cartItem.getQuantities()).isEqualTo(5); // 엔티티 자체의 수량도 변경되었는지 검증
     }
 
     @Test
@@ -245,7 +245,7 @@ class CartItemServiceTest {
         constructor.setAccessible(true);
         CartItem cartItem = constructor.newInstance();
         ReflectionTestUtils.setField(cartItem, "id", id);
-        ReflectionTestUtils.setField(cartItem, "quantity", quantity);
+        ReflectionTestUtils.setField(cartItem, "quantities", quantity);
         ReflectionTestUtils.setField(cartItem, "members", members);
         ReflectionTestUtils.setField(cartItem, "product", product);
         return cartItem;

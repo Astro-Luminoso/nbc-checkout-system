@@ -12,9 +12,8 @@ public record CartItemResponse(
         return new CartItemResponse(
                 cartItem.getId(),
                 cartItem.getProduct().getId(),
-                cartItem.getQuantity()
+                cartItem.getQuantities()
         );
     }
 }
-
 
