@@ -12,7 +12,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemR
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.MyOrderDetail;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderItemDetail;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.ItemDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.SimpleOrderDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.SpecificOrderDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
@@ -109,8 +109,8 @@ class GetOrderTest {
                 () -> Assertions.assertEquals(2, response.items().size())
         );
 
-        OrderItemDetail firstItem = response.items().get(0);
-        OrderItemDetail secondItem = response.items().get(1);
+        ItemDetail firstItem = response.items().get(0);
+        ItemDetail secondItem = response.items().get(1);
 
         Assertions.assertAll(
                 () -> Assertions.assertEquals(11L, firstItem.id()),
