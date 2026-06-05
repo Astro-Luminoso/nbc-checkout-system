@@ -6,11 +6,22 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
 public record ItemDetail(long id, String name, int price, int quantities) {
 
     public static ItemDetail from(Item item) {
-        int price = (item instanceof OrderItem orderItem) ? orderItem.getPrice() : item.getProduct().getPrice();
+        int price;
+        String name;
+        long id;
+        if (item instanceof OrderItem orderItem) {
+            id = orderItem.getId();
+            price = orderItem.getPrice();
+            name = orderItem.getName();
+        } else {
+            id = item.getProduct().getId();
+            price = item.getProduct().getPrice();
+            name = item.getProduct().getName();
+        }
 
         return new ItemDetail(
-                item.getId(),
-                item.getProduct().getName(),
+                id,
+                name,
                 price,
                 item.getQuantities()
         );
