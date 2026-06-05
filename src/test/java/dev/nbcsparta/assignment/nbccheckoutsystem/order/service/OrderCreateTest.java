@@ -83,7 +83,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 5_000);
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member(memberId, 10_000)));
-        when(cartItemRepository.findAllById(memberId, request.cartItemIds()))
+        when(cartItemRepository.findAllByIdIn(memberId, request.cartItemIds()))
                 .thenReturn(List.of(keyboardCartItem, mouseCartItem));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
@@ -133,7 +133,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         orderService.createOrder(1L, request);
 
@@ -147,7 +147,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         OutOfStockException exception = assertThrows(
                 OutOfStockException.class,
@@ -170,7 +170,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         NotOnSaleException exception = assertThrows(
                 NotOnSaleException.class,
@@ -187,7 +187,7 @@ class OrderCreateTest {
     void createOrderThrowsNoCartItemExceptionWhenSelectedCartItemsDoNotExist() {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of());
+        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of());
 
         NoCartItemException exception = assertThrows(
                 NoCartItemException.class,
@@ -207,7 +207,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         ItemsNotMatchException exception = assertThrows(
                 ItemsNotMatchException.class,
@@ -233,7 +233,7 @@ class OrderCreateTest {
                 () -> orderService.createOrder(1L, request)
         );
 
-        verify(cartItemRepository, never()).findAllById(any(Long.class), anyList());
+        verify(cartItemRepository, never()).findAllByIdIn(any(Long.class), anyList());
         verify(orderRepository, never()).save(any(Order.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         assertEquals("사용자를 찾을 수 없습니다.", exception.getMessage());
@@ -246,7 +246,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 20_001);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 30_000)));
-        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         PointExceedTotalCostException exception = assertThrows(
                 PointExceedTotalCostException.class,
@@ -269,7 +269,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 5_000);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 4_999)));
-        when(cartItemRepository.findAllById(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         PointExceedTotalCostException exception = assertThrows(
                 PointExceedTotalCostException.class,

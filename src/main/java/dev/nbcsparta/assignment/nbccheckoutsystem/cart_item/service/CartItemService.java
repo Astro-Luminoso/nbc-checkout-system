@@ -39,7 +39,7 @@ public class CartItemService {
         CartItem cartItem = cartItemRepository
                 .findByMembersAndProduct(members, product)
                 .map(existing -> {
-                    int newQuantity = existing.getQuantity() + request.quantity();
+                    int newQuantity = existing.getQuantities() + request.quantity();
 
                     if (newQuantity > product.getStockQuantity()) {
                         throw new OutOfStockException();
@@ -88,7 +88,7 @@ public class CartItemService {
         }
 
         cartItem.updateQuantity(request.quantity());
-        return new UpdateCartItemResponse(cartItem.getId(), cartItem.getQuantity());
+        return new UpdateCartItemResponse(cartItem.getId(), cartItem.getQuantities());
     }
 
     @Transactional

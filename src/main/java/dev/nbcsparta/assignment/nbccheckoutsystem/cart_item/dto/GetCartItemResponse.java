@@ -16,8 +16,8 @@ public record GetCartItemResponse(
             cartItem.getProduct().getId(),
             cartItem.getProduct().getName(),
             cartItem.getProduct().getPrice(),
-            cartItem.getQuantity(),
-            cartItem.getProduct().getPrice() * cartItem.getQuantity()
+            cartItem.getQuantities(),
+            cartItem.getProduct().getPrice() * cartItem.getQuantities()
         );
     }
 }
