@@ -71,4 +71,8 @@ public class Payment {
     public void setPaidAmount(int pgAmount) {
         this.paidAmount = pgAmount;
     }
+
+    public void cancelPayment() {
+        this.status = PaymentStatus.FAILED;
+    }
 }

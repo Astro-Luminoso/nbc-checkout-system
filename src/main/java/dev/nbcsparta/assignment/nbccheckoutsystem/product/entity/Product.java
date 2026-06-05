@@ -56,6 +56,10 @@ public class Product {
 		this.stockQuantity -= amount;
 	}
 
+	public void addStockValue(int amount) {
+		this.stockQuantity += amount;
+	}
+
 	public void restoreStockValue(int amount) {
 		this.stockQuantity += amount;
 	}
