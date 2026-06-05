@@ -9,12 +9,10 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.*;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NotOnSaleException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OrderNotFoundException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OutOfStockException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
-import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NoCartItemException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
@@ -35,6 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class OrderService {
 
@@ -44,7 +43,7 @@ public class OrderService {
     private final MemberRepository memberRepository;
     private final PointTransactionRepository pointTransactionRepository;
 
-    @Transactional
+
     public CreateOrderData createOrder(Long memberId, OrderCreateRequest request) {
         Members member = memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
@@ -65,9 +64,9 @@ public class OrderService {
         }
 
         List<OrderItem> orderItems = new ArrayList<>();
-        for(CartItem item : cartItems) {
+        for (CartItem item : cartItems) {
             Product product = item.getProduct();
-            if(product.getSaleStatus() != SaleStatus.ON_SALE) {
+            if (product.getSaleStatus() != SaleStatus.ON_SALE) {
                 throw new NotOnSaleException();
             }
 
@@ -88,6 +87,7 @@ public class OrderService {
         return CreateOrderData.from(payment);
     }
 
+    @Transactional(readOnly = true)
     public SpecificOrderDetail getOrderDetail(Long orderId, long memberId) {
         Order order = orderRepository.findOrderInFullDetailById(orderId)
                 .orElseThrow(OrderNotFoundException::new);
@@ -100,6 +100,7 @@ public class OrderService {
         return SpecificOrderDetail.from(order, pointTransactions);
     }
 
+    @Transactional(readOnly = true)
     public MyOrderDetail getMyOrderDetail(long memberId, Pageable pageable) {
         Pageable forcedPageable = PageRequest.of(
                 pageable.getPageNumber(),
@@ -111,6 +112,7 @@ public class OrderService {
         return MyOrderDetail.from(detail);
     }
 
+    @Transactional(readOnly = true)
     public OrderPreviewDetail getOrderPreview(long memberId, String items) {
         List<CartItem> cartItems = (items == null || items.isBlank()) ? cartItemRepository.findAllByMembersId(memberId) :
                 cartItemRepository.findAllByIdIn(Arrays.stream(items.split(",")).map(Long::parseLong).toList());
@@ -121,5 +123,21 @@ public class OrderService {
         }
 
         return OrderPreviewDetail.from(cartItems);
+    }
+
+    public OrderCancelDetail cancelOrder(long id, long memberId) {
+        Order order = orderRepository.findOrderInFullDetailById(id)
+                .orElseThrow(OrderNotFoundException::new);
+        if (order.getMemberId() != memberId) {
+            throw new UnauthorisedException();
+        }
+
+        if (order.getOrderStatus() != OrderStatus.STANDBY) {
+            throw new CancellationNotAllowedException();
+        }
+
+        order.cancelOrder();
+
+        return OrderCancelDetail.from(order);
     }
 }

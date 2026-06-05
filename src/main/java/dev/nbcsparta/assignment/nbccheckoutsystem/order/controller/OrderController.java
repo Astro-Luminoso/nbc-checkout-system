@@ -58,4 +58,13 @@ public class OrderController {
         OrderPreviewDetail data = orderService.getOrderPreview(memberId, items);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
     }
+
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<OrderCancelDetail>> cancelOrder(
+            @PathVariable long id,
+            @AuthenticationPrincipal Long memberId
+    ) {
+        OrderCancelDetail data = orderService.cancelOrder(id, memberId);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
+    }
 }

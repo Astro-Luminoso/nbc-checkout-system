@@ -15,8 +15,10 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("""
-            SELECT o FROM Order o
-            LEFT JOIN FETCH o.orderItems
+            SELECT DISTINCT o
+            FROM Order o
+            LEFT JOIN FETCH o.orderItems oi
+            LEFT JOIN FETCH oi.product
             LEFT JOIN FETCH o.payment
             WHERE o.id = :id
     """)
