@@ -1,10 +1,9 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.entity.Item;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,38 +25,26 @@ import java.time.LocalDateTime;
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-public class CartItem {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class CartItem extends Item {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Members members;
-
-    @ManyToOne(fetch =FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
-
-    @Column(nullable = false)
-    private Integer quantity;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
     public CartItem(Members members, Product product, Integer quantity) {
+        super(product, quantity);
         this.members = members;
-        this.product = product;
-        this.quantity = quantity;
     }
     // 동일 상품 재담기 시에 수량 합산
     public void addQuantity(Integer additionalQuantity){
-        this.quantity += additionalQuantity;
+        this.quantities += additionalQuantity;
     }
 
     public void updateQuantity(Integer quantity) {
-        this.quantity = quantity;
+        this.quantities = quantity;
     }
 }
