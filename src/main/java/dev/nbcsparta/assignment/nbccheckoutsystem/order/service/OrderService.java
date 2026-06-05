@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -47,7 +48,7 @@ public class OrderService {
     public CreateOrderData createOrder(Long memberId, OrderCreateRequest request) {
         Members member = memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
-        List<CartItem> cartItems = cartItemRepository.findAllById(memberId, request.cartItemIds());
+        List<CartItem> cartItems = cartItemRepository.findAllByIdIn(memberId, request.cartItemIds());
         if (cartItems.isEmpty()) {
             throw new NoCartItemException();
         }
@@ -56,7 +57,7 @@ public class OrderService {
         }
 
         int totalCost = cartItems.stream()
-                .mapToInt(item -> item.getProduct().getPrice() * item.getQuantity())
+                .mapToInt(item -> item.getProduct().getPrice() * item.getQuantities())
                 .sum();
 
         if (totalCost < request.usePoint() || member.getPointBalance() < request.usePoint()) {
@@ -70,12 +71,12 @@ public class OrderService {
                 throw new NotOnSaleException();
             }
 
-            if (product.getStockQuantity() - item.getQuantity() < 0) {
+            if (product.getStockQuantity() - item.getQuantities() < 0) {
                 throw new OutOfStockException();
             }
 
-            orderItems.add(new OrderItem(product.getName(), product.getPrice(), item.getQuantity(), product));
-            product.deductStockValue(item.getQuantity());
+            orderItems.add(new OrderItem(product.getName(), product.getPrice(), item.getQuantities(), product));
+            product.deductStockValue(item.getQuantities());
         }
 
         Order order = new Order(totalCost, request.usePoint(), memberId, orderItems);
@@ -100,7 +101,6 @@ public class OrderService {
     }
 
     public MyOrderDetail getMyOrderDetail(long memberId, Pageable pageable) {
-
         Pageable forcedPageable = PageRequest.of(
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
@@ -109,5 +109,17 @@ public class OrderService {
         Page<SimpleOrderDetail> detail = orderRepository.findByMemberIdFormatOfSimpleOrderDetail(memberId, forcedPageable);
 
         return MyOrderDetail.from(detail);
+    }
+
+    public OrderPreviewDetail getOrderPreview(long memberId, String items) {
+        List<CartItem> cartItems = (items == null || items.isBlank()) ? cartItemRepository.findAllByMembersId(memberId) :
+                cartItemRepository.findAllByIdIn(Arrays.stream(items.split(",")).map(Long::parseLong).toList());
+
+        boolean unauthorised = cartItems.stream().anyMatch(item -> item.getMembers().getId() != memberId);
+        if (unauthorised) {
+            throw new UnauthorisedException();
+        }
+
+        return OrderPreviewDetail.from(cartItems);
     }
 }

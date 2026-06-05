@@ -49,4 +49,13 @@ public class OrderController {
         MyOrderDetail data = orderService.getMyOrderDetail(memberId, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
     }
+
+    @GetMapping("/preview")
+    public ResponseEntity<ApiResponse<OrderPreviewDetail>> getOrderPreview(
+            @AuthenticationPrincipal Long memberId,
+            @RequestParam(value = "items", required = false) String items
+    ) {
+        OrderPreviewDetail data = orderService.getOrderPreview(memberId, items);
+        return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
+    }
 }
