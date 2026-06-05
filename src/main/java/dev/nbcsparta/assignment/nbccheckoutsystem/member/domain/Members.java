@@ -68,4 +68,22 @@ public class Members {
 
         this.pointBalance += earnPoint;
     }
+
+    // 환불 시 사용 포인트 복구
+    public void restoreUsedPoint(int usedPoint) {
+        if (usedPoint < 0) {
+            throw new InvalidPointUseException();
+        }
+
+        this.pointBalance += usedPoint;
+    }
+
+    // 환불 시 결제 적립 포인트 회수
+    public void cancelEarnedPoint(int earnedPoint) {
+        if (earnedPoint < 0 || earnedPoint > pointBalance) {
+            throw new InvalidPointUseException();
+        }
+
+        this.pointBalance -= earnedPoint;
+    }
 }

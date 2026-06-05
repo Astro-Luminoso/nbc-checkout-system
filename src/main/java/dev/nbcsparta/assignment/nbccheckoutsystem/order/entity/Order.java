@@ -76,4 +76,9 @@ public class Order {
             this.orderStatus = OrderStatus.DECLINED;
         }
     }
+
+    // 환불 시 주문 상태를 CANCELLED로 변경
+    public void cancel() {
+        this.orderStatus = OrderStatus.CANCELLED;
+    }
 }
