@@ -9,7 +9,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.OutOfStockException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import java.lang.reflect.Constructor;
@@ -51,7 +51,7 @@ class CartItemServiceTest {
 
         CartItemRequest request = new CartItemRequest(productId, 2);
 
-        Members member = createMember(memberId);
+        Member member = createMember(memberId);
         Product product = createProduct(productId, 10); // 재고 10개짜리 상품
         CartItem savedCartItem = createCartItem(55L, 2, member, product); // 저장 후 생성될 가짜 장바구니 객체
 
@@ -77,7 +77,7 @@ class CartItemServiceTest {
     void getCartItemsSuccess() throws Exception {
         // given
         Long memberId = 1L;
-        Members member = createMember(memberId);
+        Member member = createMember(memberId);
 
         Product product1 = createProduct(101L, 5);
         Product product2 = createProduct(102L, 20);
@@ -106,7 +106,7 @@ class CartItemServiceTest {
         // given
         Long memberId = 1L;
         Long cartItemId = 10L;
-        Members member = createMember(memberId);
+        Member member = createMember(memberId);
         Product product = createProduct(100L, 10); // 재고 10개짜리 상품
         CartItem cartItem = createCartItem(cartItemId, 2, member, product); // 기존 수량 2개
 
@@ -147,7 +147,7 @@ class CartItemServiceTest {
         Long otherMemberId = 2L; // 다른 사람 ID
         Long cartItemId = 10L;
 
-        Members otherMember = createMember(otherMemberId);
+        Member otherMember = createMember(otherMemberId);
         Product product = createProduct(/* id */ 100L, /* stockQuantity */ 10);
         CartItem cartItem = createCartItem(cartItemId, 2, otherMember, product);
 
@@ -167,7 +167,7 @@ class CartItemServiceTest {
         // given
         Long memberId = 1L;
         Long cartItemId = 10L;
-        Members member = createMember(memberId);
+        Member member = createMember(memberId);
         Product product = createProduct(100L, 3); // 재고가 단 3개인 상품
         CartItem cartItem = createCartItem(cartItemId, 1, member, product);
 
@@ -189,7 +189,7 @@ class CartItemServiceTest {
         // given
         Long memberId = 1L;
         Long cartItemId = 10L;
-        Members member = createMember(memberId);
+        Member member = createMember(memberId);
         CartItem cartItem = createCartItem(cartItemId, 2, member, null);
 
         when(cartItemRepository.findById(cartItemId)).thenReturn(Optional.of(cartItem));
@@ -209,7 +209,7 @@ class CartItemServiceTest {
         Long otherMemberId = 2L;
         Long cartItemId = 10L;
 
-        Members otherMember = createMember(otherMemberId);
+        Member otherMember = createMember(otherMemberId);
         CartItem cartItem = createCartItem(cartItemId, 2, otherMember, null);
 
         when(cartItemRepository.findById(cartItemId)).thenReturn(Optional.of(cartItem));
@@ -223,10 +223,10 @@ class CartItemServiceTest {
 
     // 가짜 데이터 생성을 위한 리플렉션 헬퍼 메서드들
 
-    private Members createMember(Long id) throws Exception {
-        Constructor<Members> constructor = Members.class.getDeclaredConstructor();
+    private Member createMember(Long id) throws Exception {
+        Constructor<Member> constructor = Member.class.getDeclaredConstructor();
         constructor.setAccessible(true);
-        Members member = constructor.newInstance();
+        Member member = constructor.newInstance();
         ReflectionTestUtils.setField(member, "id", id);
         return member;
     }
@@ -240,7 +240,7 @@ class CartItemServiceTest {
         return product;
     }
 
-    private CartItem createCartItem(Long id, Integer quantity, Members members, Product product) throws Exception {
+    private CartItem createCartItem(Long id, Integer quantity, Member members, Product product) throws Exception {
         Constructor<CartItem> constructor = CartItem.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         CartItem cartItem = constructor.newInstance();
@@ -259,7 +259,7 @@ class CartItemServiceTest {
 
         // given
         Long memberId = 1L;
-        Members member = createMember(memberId);
+        Member member = createMember(memberId);
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member));
 

@@ -14,7 +14,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto.SignupResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.DuplicateEmailException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.LoginFailedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.jwt.JwtProvider;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,17 +54,17 @@ class AuthServiceTest {
                 "010-1234-5678"
         );
         when(memberRepository.existsByEmail("member@example.com")).thenReturn(false);
-        when(memberRepository.save(any(Members.class))).thenAnswer(invocation -> {
-            Members member = invocation.getArgument(0);
+        when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> {
+            Member member = invocation.getArgument(0);
             ReflectionTestUtils.setField(member, "id", 1L);
             return member;
         });
 
         SignupResponse response = authService.signup(request);
 
-        ArgumentCaptor<Members> memberCaptor = ArgumentCaptor.forClass(Members.class);
+        ArgumentCaptor<Member> memberCaptor = ArgumentCaptor.forClass(Member.class);
         verify(memberRepository).save(memberCaptor.capture());
-        Members savedMember = memberCaptor.getValue();
+        Member savedMember = memberCaptor.getValue();
 
         assertThat(response.memberId()).isEqualTo(1L);
         assertThat(response.email()).isEqualTo("member@example.com");
@@ -87,13 +87,13 @@ class AuthServiceTest {
         assertThatThrownBy(() -> authService.signup(request))
                 .isInstanceOf(DuplicateEmailException.class)
                 .hasMessage("이미 가입된 이메일입니다.");
-        verify(memberRepository, never()).save(any(Members.class));
+        verify(memberRepository, never()).save(any(Member.class));
     }
 
     @Test
     void loginReturnsAccessToken() {
         String encodedPassword = passwordEncoder.encode("password1234");
-        Members member = new Members(
+        Member member = new Member(
                 "member@example.com",
                 encodedPassword,
                 "홍길동",
@@ -123,7 +123,7 @@ class AuthServiceTest {
     @Test
     void loginRejectsInvalidPassword() {
         String encodedPassword = passwordEncoder.encode("password1234");
-        Members member = new Members(
+        Member member = new Member(
                 "member@example.com",
                 encodedPassword,
                 "홍길동",

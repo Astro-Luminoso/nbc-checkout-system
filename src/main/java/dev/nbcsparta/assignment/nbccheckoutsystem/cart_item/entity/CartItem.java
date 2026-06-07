@@ -1,7 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.entity.Item;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -29,13 +29,13 @@ public class CartItem extends Item {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Members members;
+    private Member members;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
 
-    public CartItem(Members members, Product product, Integer quantity) {
+    public CartItem(Member members, Product product, Integer quantity) {
         super(product, quantity);
         this.members = members;
     }

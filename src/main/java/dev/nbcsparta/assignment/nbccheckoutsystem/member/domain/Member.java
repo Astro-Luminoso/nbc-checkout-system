@@ -1,21 +1,18 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.member.domain;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.entity.BaseEntity;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.InvalidPointUseException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "members")
 @EntityListeners(AuditingEntityListener.class)
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @Getter
-public class Members {
+public class Member extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,18 +30,10 @@ public class Members {
     @Column(nullable = false)
     private String phoneNumber;
 
-    @Column(nullable = false)
-    @CreatedDate
-    private LocalDateTime createdDate;
-
-    @Column(nullable = false)
-    @LastModifiedDate
-    private LocalDateTime updatedDate;
-
     private int pointBalance;
 
 
-    public Members (String email, String password, String name, String phoneNumber) {
+    public Member(String email, String password, String name, String phoneNumber) {
         this.email = email;
         this.password = password;
         this.name = name;
