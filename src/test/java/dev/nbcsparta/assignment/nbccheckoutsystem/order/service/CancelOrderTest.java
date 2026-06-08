@@ -59,8 +59,6 @@ class CancelOrderTest {
         orderService = new OrderService(
                 cartItemRepository,
                 orderRepository,
-                paymentRepository,
-                memberRepository,
                 pointTransactionRepository
         );
     }

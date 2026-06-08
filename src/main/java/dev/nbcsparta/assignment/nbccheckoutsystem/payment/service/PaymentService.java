@@ -84,4 +84,12 @@ public class PaymentService {
             }
         }
     }
+
+    @Transactional
+    public Payment savePayment(Order order) {
+        Payment payment = new Payment(order);
+        payment = paymentRepository.save(payment);
+
+        return payment;
+    }
 }

@@ -21,4 +21,9 @@ public class MemberService {
 
         return PointBalanceResponse.from(member);
     }
+
+    public Member getMemberById(long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(MemberNotFoundException::new);
+    }
 }

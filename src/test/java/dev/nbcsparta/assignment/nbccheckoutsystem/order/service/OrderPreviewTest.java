@@ -10,15 +10,21 @@ import static org.mockito.Mockito.when;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.facade.OrderFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.service.MemberService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.ItemDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderPreviewDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.service.PaymentService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.point.service.PointService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,16 +54,19 @@ class OrderPreviewTest {
     @Mock
     private PointTransactionRepository pointTransactionRepository;
 
-    private OrderService orderService;
+    @Mock
+    private ProductRepository productRepository;
+
+    private OrderFacade orderFacade;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(
-                cartItemRepository,
-                orderRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
+        orderFacade = new OrderFacade(
+                new OrderService(cartItemRepository, orderRepository, pointTransactionRepository),
+                new PaymentService(paymentRepository, memberRepository, cartItemRepository, pointTransactionRepository),
+                new CartItemService(cartItemRepository, memberRepository, productRepository),
+                new MemberService(memberRepository),
+                new PointService(pointTransactionRepository)
         );
     }
 
@@ -66,9 +75,9 @@ class OrderPreviewTest {
         long memberId = 1L;
         CartItem keyboard = cartItem(11L, member(memberId), product(10L, "무선 키보드", 39_000), 2);
         CartItem mouse = cartItem(12L, member(memberId), product(20L, "무선 마우스", 25_000), 1);
-        when(cartItemRepository.findAllByMembersId(memberId)).thenReturn(List.of(keyboard, mouse));
+        when(cartItemRepository.findAllByMemberId(memberId)).thenReturn(List.of(keyboard, mouse));
 
-        OrderPreviewDetail response = orderService.getOrderPreview(memberId, null);
+        OrderPreviewDetail response = orderFacade.getOrderPreview(memberId, null);
 
         assertAll(
                 () -> assertEquals(2, response.items().size()),
@@ -76,7 +85,7 @@ class OrderPreviewTest {
                 () -> assertItem(response.items().get(0), 10L, "무선 키보드", 39_000, 2),
                 () -> assertItem(response.items().get(1), 20L, "무선 마우스", 25_000, 1)
         );
-        verify(cartItemRepository).findAllByMembersId(memberId);
+        verify(cartItemRepository).findAllByMemberId(memberId);
         verify(cartItemRepository, never()).findAllByIdIn(anyList());
         verifyReadOnlyDependencies();
     }
@@ -85,15 +94,15 @@ class OrderPreviewTest {
     void getOrderPreviewReturnsAllCartItemsWhenItemsParameterIsBlank() throws Exception {
         long memberId = 1L;
         CartItem keyboard = cartItem(11L, member(memberId), product(10L, "무선 키보드", 39_000), 2);
-        when(cartItemRepository.findAllByMembersId(memberId)).thenReturn(List.of(keyboard));
+        when(cartItemRepository.findAllByMemberId(memberId)).thenReturn(List.of(keyboard));
 
-        OrderPreviewDetail response = orderService.getOrderPreview(memberId, "   ");
+        OrderPreviewDetail response = orderFacade.getOrderPreview(memberId, "   ");
 
         assertAll(
                 () -> assertEquals(1, response.items().size()),
                 () -> assertEquals(78_000, response.totalAmount())
         );
-        verify(cartItemRepository).findAllByMembersId(memberId);
+        verify(cartItemRepository).findAllByMemberId(memberId);
     }
 
     @Test
@@ -103,7 +112,7 @@ class OrderPreviewTest {
         CartItem mouse = cartItem(15L, member(memberId), product(20L, "무선 마우스", 25_000), 3);
         when(cartItemRepository.findAllByIdIn(List.of(11L, 15L))).thenReturn(List.of(keyboard, mouse));
 
-        OrderPreviewDetail response = orderService.getOrderPreview(memberId, "11,15");
+        OrderPreviewDetail response = orderFacade.getOrderPreview(memberId, "11,15");
 
         assertAll(
                 () -> assertEquals(2, response.items().size()),
@@ -112,16 +121,16 @@ class OrderPreviewTest {
                 () -> assertItem(response.items().get(1), 20L, "무선 마우스", 25_000, 3)
         );
         verify(cartItemRepository).findAllByIdIn(List.of(11L, 15L));
-        verify(cartItemRepository, never()).findAllByMembersId(memberId);
+        verify(cartItemRepository, never()).findAllByMemberId(memberId);
         verifyReadOnlyDependencies();
     }
 
     @Test
     void getOrderPreviewReturnsEmptyPreviewWhenCartIsEmpty() {
         long memberId = 1L;
-        when(cartItemRepository.findAllByMembersId(memberId)).thenReturn(List.of());
+        when(cartItemRepository.findAllByMemberId(memberId)).thenReturn(List.of());
 
-        OrderPreviewDetail response = orderService.getOrderPreview(memberId, null);
+        OrderPreviewDetail response = orderFacade.getOrderPreview(memberId, null);
 
         assertAll(
                 () -> assertEquals(List.of(), response.items()),
@@ -142,7 +151,7 @@ class OrderPreviewTest {
 
         UnauthorisedException exception = assertThrows(
                 UnauthorisedException.class,
-                () -> orderService.getOrderPreview(requestMemberId, "11")
+                () -> orderFacade.getOrderPreview(requestMemberId, "11")
         );
 
         assertEquals("Client Not Match", exception.getMessage());

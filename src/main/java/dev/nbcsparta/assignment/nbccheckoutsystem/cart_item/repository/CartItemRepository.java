@@ -14,7 +14,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     Optional<CartItem> findByMembersAndProduct(Member members, Product product);
     @Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.members.id = :memberId AND c.id IN :cartItemIds")
-    List<CartItem> findAllByIdIn(@Param("memberId") Long memberId, @Param("cartItemIds") List<Long> cartItemIds);
+    List<CartItem> findByMemberIdIn(@Param("memberId") Long memberId, @Param("cartItemIds") List<Long> cartItemIds);
 
     void deleteByMembers(Member members);
 
@@ -29,7 +29,7 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
     void deleteAllByMembers(Member members);
 
-    List<CartItem> findAllByMembersId(long memberId);
+    List<CartItem> findAllByMemberId(long memberId);
 
     List<CartItem> findAllByIdIn(List<Long> items);
 }
