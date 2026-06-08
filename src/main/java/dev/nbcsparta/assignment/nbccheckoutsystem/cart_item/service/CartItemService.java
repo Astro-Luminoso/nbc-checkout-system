@@ -109,4 +109,14 @@ public class CartItemService {
 
         cartItemRepository.deleteAllByMembers(members);
     }
+
+    @Transactional
+    public void deletePurchasedCartItems(Long memberId, List<Product> products) {
+        Member members = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        if (products != null && !products.isEmpty()) {
+            cartItemRepository.deleteByMembersAndProductIn(members, products);
+        }
+    }
 }

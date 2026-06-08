@@ -12,9 +12,14 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.UnexpectedPa
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGateway;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGatewayResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -24,6 +29,7 @@ public class PaymentCommandService {
     private final PaymentRepository paymentRepository;
     private final PaymentGateway paymentGateway;
     private final PaymentService paymentService;
+    private final CartItemService cartItemService;
 
     public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request, Long memberId) {
         Payment payment = paymentRepository.findByOrderIdWithOrder(request.orderId())
@@ -64,6 +70,11 @@ public class PaymentCommandService {
             if (isPaid && isAmountMatch) {
                 // 성공 시 DB 트랜잭션 반영 호출
                 paymentService.savePaymentSuccess(payment.getId(), portOnePaymentId, order.getMemberId(), pgResponse.totalAmount());
+
+                List<Product> orderedProducts = order.getOrderItems().stream()
+                        .map(OrderItem::getProduct)
+                        .toList();
+                cartItemService.deletePurchasedCartItems(order.getMemberId(), orderedProducts);
             } else {
                 // 검증 실패 시 DB 트랜잭션 실패 반영 호출 후 보상 취소 요청
                 paymentService.savePaymentFailed(payment.getId());

@@ -26,7 +26,6 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final MemberRepository memberRepository;
-    private final CartItemRepository cartItemRepository;
     private final PointTransactionRepository pointTransactionRepository;
 
     @Transactional
@@ -52,9 +51,6 @@ public class PaymentService {
 
             member.addPointBalance(payment.getPaidAmount());
             pointTransactionRepository.save(PointTransaction.createEarn(member, (int) (paidAmount * 0.01), order));
-
-            // 2. 장바구니 초기화
-            cartItemRepository.deleteByMembers(member);
         } else {
             // 결제 상태가 PAID로 가지 못한 경우 강제 예외 발생을 통해 전체 롤백 유도
             throw new NotValidatedPaidAmountException();
