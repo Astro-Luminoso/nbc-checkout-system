@@ -29,7 +29,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             SELECT new dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.SimpleOrderDetail
             (o.id, o.orderStatus, o.totalAmount, o.createdDate)
             FROM Order o
-            WHERE o.memberId = :memberId
+            WHERE o.member.id = :memberId
             """)
     Page<SimpleOrderDetail> findByMemberIdFormatOfSimpleOrderDetail(@Param("memberId") long memberId, Pageable pageable);
 }
