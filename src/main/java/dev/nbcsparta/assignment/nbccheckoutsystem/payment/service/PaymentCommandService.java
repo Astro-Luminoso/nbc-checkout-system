@@ -65,6 +65,25 @@ public class PaymentCommandService {
             throw new InvalidPaymentIdentifierException();
         }
 
+        // 포인트 전액 결제 시 PG 조회 생략 및 즉시 성공 처리
+        if (payment.getPaidAmount() == 0) {
+            paymentService.savePaymentSuccess(payment.getId(), order.getMemberId(), 0);
+
+            List<Product> orderedProducts = order.getOrderItems().stream()
+                    .map(OrderItem::getProduct)
+                    .toList();
+            cartItemService.deletePurchasedCartItems(order.getMemberId(), orderedProducts);
+
+            Payment updatedPayment = paymentRepository.findById(payment.getId())
+                    .orElseThrow(PaymentNotFoundException::new);
+
+            return new PaymentConfirmResponse(
+                    order.getId(),
+                    portOnePaymentId,
+                    updatedPayment.getStatus()
+            );
+        }
+
         try {
             // 포트원 실제 결제 정보 조회 (트랜잭션 바깥)
             PaymentGatewayResponse pgResponse = paymentGateway.getPayment(portOnePaymentId);
