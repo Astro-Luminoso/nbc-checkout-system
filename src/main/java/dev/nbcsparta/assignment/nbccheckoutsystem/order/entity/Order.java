@@ -58,6 +58,9 @@ public class Order extends BaseEntity {
     }
 
     public void paymentResult(Long paidAmount) {
+        if (this.orderStatus != OrderStatus.STANDBY) {
+            return;
+        }
         if ((this.totalAmount - this.usedPoint) == paidAmount ) {
             this.orderStatus = OrderStatus.PAID;
         } else {

@@ -45,12 +45,12 @@ public class PaymentCommandService {
             throw new UnauthorizeAccessException();
         }
 
-        // 멱등성 검증: 이미 성공 처리 완료된 건이면 상태 변경 없이 성공 응답 반환
-        if (payment.getStatus() == PaymentStatus.COMPLETED) {
+        // 멱등성 검증: 이미 종료 상태(COMPLETED, FAILED, REFUNDED)이면 상태 변경 없이 해당 상태로 응답 반환
+        if (payment.getStatus() != PaymentStatus.PENDING) {
             return new PaymentConfirmResponse(
                     order.getId(),
                     portOnePaymentId,
-                    PaymentStatus.COMPLETED
+                    payment.getStatus()
             );
         }
 
