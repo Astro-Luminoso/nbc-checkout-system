@@ -110,7 +110,7 @@ public class CartItemService {
 
         cartItemRepository.deleteAllByMember(members);
     }
-
+  
     @Transactional(readOnly = true)
     public List<CartItem> getCartItemsByMemberIdIn(long memberId, List<Long> cartItemIds) {
         return cartItemRepository.findByMemberIdIn(memberId, cartItemIds);
@@ -136,5 +136,14 @@ public class CartItemService {
             throw new UnauthorisedException();
         }
     }
+  
+  @Transactional
+    public void deletePurchasedCartItems(Long memberId, List<Product> products) {
+        Member members = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
+        if (products != null && !products.isEmpty()) {
+            cartItemRepository.deleteByMembersAndProductIn(members, products);
+        }
+    }
 }

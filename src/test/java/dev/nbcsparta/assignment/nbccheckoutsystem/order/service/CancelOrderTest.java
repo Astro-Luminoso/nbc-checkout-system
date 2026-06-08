@@ -157,7 +157,7 @@ class CancelOrderTest {
                 List.of(orderItem("Keyboard", 20_000, 2, product))
         );
         order.paymentResult((long) order.getTotalAmount());
-        order.getPayment().confirmSuccess("portone-payment-id", LocalDateTime.now());
+        order.getPayment().confirmSuccess(LocalDateTime.now());
 
         when(orderRepository.findOrderInFullDetailById(orderId)).thenReturn(Optional.of(order));
 

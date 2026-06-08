@@ -19,6 +19,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
@@ -42,17 +45,25 @@ public class Payment {
         this.status = PaymentStatus.PENDING;
     }
 
-    public void confirmSuccess(String portOnePaymentId, LocalDateTime paidAt) {
-        this.portOnePaymentId = portOnePaymentId;
+    public void confirmSuccess(LocalDateTime paidAt) {
+        if (this.status != PaymentStatus.PENDING) {
+            throw new IllegalStateException("Payment must be in PENDING state to confirm success, but is " + this.status);
+        }
         this.status = PaymentStatus.COMPLETED;
         this.paidAt = paidAt;
     }
 
     public void confirmFailed() {
+        if (this.status != PaymentStatus.PENDING) {
+            throw new IllegalStateException("Payment must be in PENDING state to fail, but is " + this.status);
+        }
         this.status = PaymentStatus.FAILED;
     }
 
     public void refund() {
+        if (this.status != PaymentStatus.COMPLETED) {
+            throw new IllegalStateException("Payment must be in COMPLETED state to be refunded, but is " + this.status);
+        }
         this.status = PaymentStatus.REFUNDED;
     }
 
@@ -61,6 +72,10 @@ public class Payment {
     }
 
     public void cancelPayment() {
-        this.status = PaymentStatus.FAILED;
+        if (this.status == PaymentStatus.PENDING) {
+            this.status = PaymentStatus.FAILED;
+        } else if (this.status == PaymentStatus.COMPLETED) {
+            this.status = PaymentStatus.REFUNDED;
+        }
     }
 }

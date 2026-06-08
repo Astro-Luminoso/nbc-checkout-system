@@ -1,6 +1,5 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.payment.service;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
@@ -8,6 +7,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.PaymentStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.NotValidatedPaidAmountException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.PaymentNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
@@ -26,11 +26,10 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final MemberRepository memberRepository;
-    private final CartItemRepository cartItemRepository;
     private final PointTransactionRepository pointTransactionRepository;
 
     @Transactional
-    public void savePaymentSuccess(Long paymentId, String portOnePaymentId, Long memberId, int paidAmount) {
+    public void savePaymentSuccess(Long paymentId, Long memberId, int paidAmount) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(PaymentNotFoundException::new);
         Order order = payment.getOrder();
@@ -44,7 +43,7 @@ public class PaymentService {
         payment.setPaidAmount(paidAmount);
 
         if (order.getOrderStatus() == OrderStatus.PAID) {
-            payment.confirmSuccess(portOnePaymentId, LocalDateTime.now());
+            payment.confirmSuccess(LocalDateTime.now());
 
             // 1. 포인트 사용(차감) 및 적립(결제금액의 1%)
             member.deductPointBalance(order.getUsedPoint());
@@ -65,6 +64,12 @@ public class PaymentService {
     public void savePaymentFailed(Long paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(PaymentNotFoundException::new);
+        
+        // 중복 실패 처리 및 재고 중복 복구 차단
+        if (payment.getStatus() != PaymentStatus.PENDING) {
+            return;
+        }
+
         Order order = payment.getOrder();
 
         order.paymentResult(0L); // DECLINED 전이
