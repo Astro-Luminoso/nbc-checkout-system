@@ -38,7 +38,7 @@ public class CartItemService {
         }
 
         CartItem cartItem = cartItemRepository
-                .findByMembersAndProduct(members, product)
+                .findByMemberAndProduct(members, product)
                 .map(existing -> {
                     int newQuantity = existing.getQuantities() + request.quantity();
 
@@ -108,7 +108,7 @@ public class CartItemService {
         Member members = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        cartItemRepository.deleteAllByMembers(members);
+        cartItemRepository.deleteAllByMember(members);
     }
 
     @Transactional(readOnly = true)

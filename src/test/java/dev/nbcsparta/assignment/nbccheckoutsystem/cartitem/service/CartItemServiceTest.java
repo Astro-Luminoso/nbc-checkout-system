@@ -267,7 +267,7 @@ class CartItemServiceTest {
         cartItemService.deleteAllCartItems(memberId);
 
         // then
-        verify(cartItemRepository, times(1)).deleteAllByMembers(member);
+        verify(cartItemRepository, times(1)).deleteAllByMember(member);
 
     }
 

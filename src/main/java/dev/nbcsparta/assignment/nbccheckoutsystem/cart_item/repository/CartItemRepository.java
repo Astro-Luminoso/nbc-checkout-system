@@ -12,22 +12,22 @@ import java.util.Optional;
 
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
-    Optional<CartItem> findByMembersAndProduct(Member members, Product product);
-    @Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.members.id = :memberId AND c.id IN :cartItemIds")
+    Optional<CartItem> findByMemberAndProduct(Member members, Product product);
+    @Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.member.id = :memberId AND c.id IN :cartItemIds")
     List<CartItem> findByMemberIdIn(@Param("memberId") Long memberId, @Param("cartItemIds") List<Long> cartItemIds);
 
-    void deleteByMembers(Member members);
+    void deleteByMember(Member members);
 
 
     @Query("""
     select ci
     from CartItem ci
     join fetch ci.product
-    where ci.members = :members
+    where ci.member = :members
 """)
     List<CartItem> findAllByMembers(Member members);
 
-    void deleteAllByMembers(Member members);
+    void deleteAllByMember(Member members);
 
     List<CartItem> findAllByMemberId(long memberId);
 
