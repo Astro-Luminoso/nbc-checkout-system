@@ -5,7 +5,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.PointExceedTotalCostException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.*;
@@ -45,7 +45,7 @@ public class OrderService {
 
 
     public CreateOrderData createOrder(Long memberId, OrderCreateRequest request) {
-        Members member = memberRepository.findById(memberId)
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
         List<CartItem> cartItems = cartItemRepository.findAllByIdIn(memberId, request.cartItemIds());
         if (cartItems.isEmpty()) {

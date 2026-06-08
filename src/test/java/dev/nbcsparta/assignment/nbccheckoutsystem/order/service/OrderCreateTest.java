@@ -15,7 +15,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.PointExceedTotalCostException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.CreateOrderData;
@@ -319,8 +319,8 @@ class OrderCreateTest {
         return cartItem;
     }
 
-    private Members member(Long id, int pointBalance) {
-        Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
+    private Member member(Long id, int pointBalance) {
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", id);
         ReflectionTestUtils.setField(member, "pointBalance", pointBalance);
         return member;

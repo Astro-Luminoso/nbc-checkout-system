@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.MyOrderDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.ItemDetail;
@@ -87,7 +87,7 @@ class GetOrderTest {
                         orderItem(12L, "Mouse", 15_000, 1)
                 )
         );
-        Members member = member(memberId);
+        Member member = member(memberId);
         List<PointTransaction> pointTransactions = List.of(
                 PointTransaction.createUse(member, 5_000, order),
                 PointTransaction.createEarn(member, 1_000, order)
@@ -161,7 +161,7 @@ class GetOrderTest {
                 1_000,
                 List.of(orderItem(11L, "Keyboard", 20_000, 1))
         );
-        Members member = member(memberId);
+        Member member = member(memberId);
         List<PointTransaction> pointTransactions = List.of(
                 PointTransaction.createUse(member, 1_000, order),
                 PointTransaction.createEarn(member, 200, order),
@@ -345,8 +345,8 @@ class GetOrderTest {
         return orderItem;
     }
 
-    private Members member(Long id) {
-        Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
+    private Member member(Long id) {
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", id);
         return member;
     }

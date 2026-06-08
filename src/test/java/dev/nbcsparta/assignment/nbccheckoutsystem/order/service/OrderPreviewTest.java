@@ -11,7 +11,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedExc
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.ItemDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderPreviewDetail;
@@ -203,14 +203,14 @@ class OrderPreviewTest {
         return product;
     }
 
-    private CartItem cartItem(Long id, Members member, Product product, int quantity) {
+    private CartItem cartItem(Long id, Member member, Product product, int quantity) {
         CartItem cartItem = new CartItem(member, product, quantity);
         ReflectionTestUtils.setField(cartItem, "id", id);
         return cartItem;
     }
 
-    private Members member(Long id) {
-        Members member = new Members("test" + id + "@test.com", "password", "name", "010-0000-0000");
+    private Member member(Long id) {
+        Member member = new Member("test" + id + "@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", id);
         return member;
     }

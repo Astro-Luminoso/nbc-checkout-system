@@ -5,9 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,7 +13,6 @@ import java.util.UUID;
 @Table(name = "payments")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 public class Payment {
 
     @Id
@@ -38,14 +34,6 @@ public class Payment {
     private PaymentStatus status;
 
     private LocalDateTime paidAt;
-
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedDate;
 
     public Payment(Order order) {
         this.order = order;

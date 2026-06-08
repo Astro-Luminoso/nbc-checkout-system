@@ -1,15 +1,12 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.entity;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.entity.BaseEntity;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,8 +14,7 @@ import java.util.List;
 @Getter
 @Table(name = "orders")
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
-public class Order {
+public class Order extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,14 +32,6 @@ public class Order {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private OrderStatus orderStatus;
-
-    @CreatedDate
-    @Column(nullable = false)
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedDate;
 
     // --------------
 

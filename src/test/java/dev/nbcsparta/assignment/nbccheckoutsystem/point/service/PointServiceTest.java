@@ -3,7 +3,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.point.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransaction;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransactionType;
@@ -33,7 +33,7 @@ class PointServiceTest {
         // Given
         Long memberId = 1L;
 
-        Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", memberId);
 
         Order order = new Order(22000, 7000, memberId, List.of());
