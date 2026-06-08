@@ -33,7 +33,7 @@ public class RefundCommandService {
                 .orElseThrow(PaymentNotFoundException::new);
         Order order = payment.getOrder();
         // 주문을 만든 회원과 현재 로그인한 회원이 같은지 확인
-        if (!order.getMemberId().equals(memberId)) {
+        if (!order.getMember().getId().equals(memberId)) {
             throw new ForbiddenPaymentException();
         }
         // 결제 완료 상태인지 확인

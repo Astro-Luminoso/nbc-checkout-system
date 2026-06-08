@@ -45,7 +45,7 @@ public class RefundService {
             throw new DuplicateRefundException();
         }
 
-        Member member = memberRepository.findById(order.getMemberId())
+        Member member = memberRepository.findById(order.getMember().getId())
                 .orElseThrow(MemberNotFoundException::new);
 
         int pointRefundAmount = order.getUsedPoint();

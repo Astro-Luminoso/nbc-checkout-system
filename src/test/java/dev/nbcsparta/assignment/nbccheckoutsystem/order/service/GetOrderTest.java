@@ -26,6 +26,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepo
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransaction;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransactionType;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
+import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -330,8 +331,13 @@ class GetOrderTest {
             int usedPoint,
             List<OrderItem> orderItems
     ) {
-        Order order = new Order(totalAmount, usedPoint, memberId, orderItems);
+        Order order = newInstance(Order.class);
         ReflectionTestUtils.setField(order, "id", id);
+        ReflectionTestUtils.setField(order, "member", member(memberId));
+        ReflectionTestUtils.setField(order, "totalAmount", totalAmount);
+        ReflectionTestUtils.setField(order, "usedPoint", usedPoint);
+        ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.STANDBY);
+        ReflectionTestUtils.setField(order, "orderItems", orderItems);
 
         Payment payment = new Payment(order);
         ReflectionTestUtils.setField(order, "payment", payment);
@@ -340,8 +346,11 @@ class GetOrderTest {
     }
 
     private OrderItem orderItem(Long id, String name, int price, int quantities) {
-        OrderItem orderItem = new OrderItem(name, price, quantities, null);
+        OrderItem orderItem = newInstance(OrderItem.class);
         ReflectionTestUtils.setField(orderItem, "id", id);
+        ReflectionTestUtils.setField(orderItem, "name", name);
+        ReflectionTestUtils.setField(orderItem, "price", price);
+        ReflectionTestUtils.setField(orderItem, "quantities", quantities);
         return orderItem;
     }
 
@@ -349,5 +358,15 @@ class GetOrderTest {
         Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", id);
         return member;
+    }
+
+    private <T> T newInstance(Class<T> type) {
+        try {
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }
