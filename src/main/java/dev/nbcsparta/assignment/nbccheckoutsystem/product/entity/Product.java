@@ -1,6 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.product.entity;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.entity.BaseEntity;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.exception.OutOfStockException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,6 +40,9 @@ public class Product extends BaseEntity {
 	private SaleStatus saleStatus;
 
 	public void deductStockValue(int amount) {
+		if (this.stockQuantity < amount) {
+			throw new OutOfStockException();
+		}
 		this.stockQuantity -= amount;
 	}
 
