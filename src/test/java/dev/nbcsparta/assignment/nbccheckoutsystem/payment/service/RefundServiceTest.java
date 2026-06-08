@@ -206,15 +206,25 @@ class RefundServiceTest {
     }
 
     private Order paidOrder(Long id, Long memberId, int totalAmount, int usedPoint, List<OrderItem> orderItems) {
-        Order order = new Order(totalAmount, usedPoint, memberId, orderItems);
+        Order order = newInstance(Order.class);
+        Member member = member(memberId, 0);
         ReflectionTestUtils.setField(order, "id", id);
+        ReflectionTestUtils.setField(order, "member", member);
+        ReflectionTestUtils.setField(order, "totalAmount", totalAmount);
+        ReflectionTestUtils.setField(order, "usedPoint", usedPoint);
+        ReflectionTestUtils.setField(order, "orderItems", orderItems);
+        orderItems.forEach(item -> item.setOrder(order));
         ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.PAID);
         return order;
     }
 
     private OrderItem orderItem(Long id, String name, int price, int quantities, Product product) {
-        OrderItem orderItem = new OrderItem(name, price, quantities, product);
+        OrderItem orderItem = newInstance(OrderItem.class);
         ReflectionTestUtils.setField(orderItem, "id", id);
+        ReflectionTestUtils.setField(orderItem, "name", name);
+        ReflectionTestUtils.setField(orderItem, "price", price);
+        ReflectionTestUtils.setField(orderItem, "quantities", quantities);
+        ReflectionTestUtils.setField(orderItem, "product", product);
         return orderItem;
     }
 

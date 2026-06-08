@@ -35,7 +35,7 @@ public class PaymentCommandService {
         Order order = payment.getOrder();
 
         // 소유자 검증 (로그인한 멤버의 주문인지 확인, API 호출시에만 수행)
-        if (checkOwnership && !order.getMemberId().equals(memberId)) {
+        if (checkOwnership && !order.getMember().getId().equals(memberId)) {
             throw new UnauthorizeAccessException();
         }
 
@@ -63,7 +63,7 @@ public class PaymentCommandService {
 
             if (isPaid && isAmountMatch) {
                 // 성공 시 DB 트랜잭션 반영 호출
-                paymentService.savePaymentSuccess(payment.getId(), portOnePaymentId, order.getMemberId(), pgResponse.totalAmount());
+                paymentService.savePaymentSuccess(payment.getId(), portOnePaymentId, order.getMember().getId(), pgResponse.totalAmount());
             } else {
                 // 검증 실패 시 DB 트랜잭션 실패 반영 호출 후 보상 취소 요청
                 paymentService.savePaymentFailed(payment.getId());
