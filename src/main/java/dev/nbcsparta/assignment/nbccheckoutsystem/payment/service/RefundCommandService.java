@@ -10,7 +10,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.DuplicateRef
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.ForbiddenPaymentException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.InvalidPaymentStatusException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.PaymentNotFoundException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.RefundFailedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGateway;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.RefundRepository;
@@ -49,14 +48,9 @@ public class RefundCommandService {
 
         // 2. 실제 포트원 결제 금액이 있는 경우에만 외부 통신 수행
         if (payment.getPaidAmount() > 0) {
-            try {
-                paymentGateway.cancelPayment(payment.getPortOnePaymentId(), request.reason());
-            } catch (Exception e) {
-                // DB 환불은 처리되었으나 PG 취소가 실패한 상태 (수동 환불 대상)
-                log.error("CRITICAL: DB refund succeeded but PG cancellation failed. Manual refund required! PaymentId: {}, Error: {}", paymentId, e.getMessage(), e);
-                // DB는 이미 환불되었으나, 클라이언트에게 일시적 결제 취소 지연 상태임을 알림
-                throw new RefundFailedException();
-            }
+
+            paymentGateway.cancelPayment(payment.getPortOnePaymentId(), request.reason());
+
         }
 
         return response;
