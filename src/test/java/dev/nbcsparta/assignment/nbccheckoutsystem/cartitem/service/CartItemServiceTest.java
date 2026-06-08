@@ -246,7 +246,7 @@ class CartItemServiceTest {
         CartItem cartItem = constructor.newInstance();
         ReflectionTestUtils.setField(cartItem, "id", id);
         ReflectionTestUtils.setField(cartItem, "quantities", quantity);
-        ReflectionTestUtils.setField(cartItem, "members", members);
+        ReflectionTestUtils.setField(cartItem, "member", members);
         ReflectionTestUtils.setField(cartItem, "product", product);
         return cartItem;
     }
