@@ -86,19 +86,22 @@ public class PaymentCommandService {
                         .map(OrderItem::getProduct)
                         .toList();
                 cartItemService.deletePurchasedCartItems(order.getMemberId(), orderedProducts);
-            } else {
-                // 검증 실패 시 DB 트랜잭션 실패 반영 호출 후 보상 취소 요청
+            } else if (isPaid && !isAmountMatch) {
+                // 결제는 성공했으나 금액 불일치 -> 악의적 접근이거나 설정 오류
+                // 이 경우 결제를 취소해야 함, 그리고 우리 서버 상태는 FAILED로 마킹
                 paymentService.savePaymentFailed(payment.getId());
-                if (isPaid) {
-                    cancelPaymentWithLogging(portOnePaymentId, "Verification failed: Amount mismatch");
-                }
+                cancelPaymentWithLogging(portOnePaymentId, "Verification failed: Amount mismatch");
+            } else {
+                // isPaid가 아닌 경우 (예: READY, FAILED, CANCELLED 등 명시적 실패 응답)
+                // 이 경우 FAILED 전환 및 재고 복구 (단, 포트원 결제 자체는 안 된 상태이므로 취소 요청 불필요)
+                paymentService.savePaymentFailed(payment.getId());
             }
         } catch (InvalidPaymentIdentifierException e) {
             throw e; // 취소 및 실패 처리 없이 에러 반환
         } catch (Exception e) {
-            // 예외 발생 시 DB 트랜잭션 실패 반영 호출 후 결제 보상 취소 요청
-            paymentService.savePaymentFailed(payment.getId());
-            cancelPaymentWithLogging(portOnePaymentId, "Exception during confirmation: " + e.getMessage());
+            // 알 수 없는 장애(네트워크 예외 등) 발생 시 재고 복구(FAILED 전환)를 수행하지 않음
+            // 취소 요청도 함부로 보내지 않고 PENDING 상태 유지, Webhook 또는 배치 대기
+            log.error("Payment confirmation unknown error for portOnePaymentId {}: {}", portOnePaymentId, e.getMessage(), e);
             throw new UnexpectedPaymentFailException();
         }
 
