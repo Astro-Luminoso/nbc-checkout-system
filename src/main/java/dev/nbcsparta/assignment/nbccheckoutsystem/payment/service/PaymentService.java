@@ -29,7 +29,7 @@ public class PaymentService {
     private final PointTransactionRepository pointTransactionRepository;
 
     @Transactional
-    public void savePaymentSuccess(Long paymentId, String portOnePaymentId, Long memberId, int paidAmount) {
+    public void savePaymentSuccess(Long paymentId, Long memberId, int paidAmount) {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(PaymentNotFoundException::new);
         Order order = payment.getOrder();
@@ -43,7 +43,7 @@ public class PaymentService {
         payment.setPaidAmount(paidAmount);
 
         if (order.getOrderStatus() == OrderStatus.PAID) {
-            payment.confirmSuccess(portOnePaymentId, LocalDateTime.now());
+            payment.confirmSuccess(LocalDateTime.now());
 
             // 1. 포인트 사용(차감) 및 적립(결제금액의 1%)
             member.deductPointBalance(order.getUsedPoint());

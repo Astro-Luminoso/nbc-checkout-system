@@ -45,11 +45,10 @@ public class Payment {
         this.status = PaymentStatus.PENDING;
     }
 
-    public void confirmSuccess(String portOnePaymentId, LocalDateTime paidAt) {
+    public void confirmSuccess(LocalDateTime paidAt) {
         if (this.status != PaymentStatus.PENDING) {
             throw new IllegalStateException("Payment must be in PENDING state to confirm success, but is " + this.status);
         }
-        this.portOnePaymentId = portOnePaymentId;
         this.status = PaymentStatus.COMPLETED;
         this.paidAt = paidAt;
     }

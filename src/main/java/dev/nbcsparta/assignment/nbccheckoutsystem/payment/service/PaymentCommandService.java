@@ -9,6 +9,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.AlreadyPaidO
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.PaymentNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.UnauthorizeAccessException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.UnexpectedPaymentFailException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.InvalidPaymentIdentifierException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGateway;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGatewayResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
@@ -59,9 +60,19 @@ public class PaymentCommandService {
             throw new AlreadyPaidOrderException();
         }
 
+        // 서버 발급 결제 ID와 요청 결제 ID 일치 검증
+        if (!payment.getPortOnePaymentId().equals(portOnePaymentId)) {
+            throw new InvalidPaymentIdentifierException();
+        }
+
         try {
             // 포트원 실제 결제 정보 조회 (트랜잭션 바깥)
             PaymentGatewayResponse pgResponse = paymentGateway.getPayment(portOnePaymentId);
+
+            // PG 응답의 ID 일치 이중 검증
+            if (!pgResponse.id().equals(portOnePaymentId)) {
+                throw new InvalidPaymentIdentifierException();
+            }
 
             // 결제 상태 검증 및 금액 위변조 검증
             boolean isPaid = "PAID".equals(pgResponse.status());
@@ -69,7 +80,7 @@ public class PaymentCommandService {
 
             if (isPaid && isAmountMatch) {
                 // 성공 시 DB 트랜잭션 반영 호출
-                paymentService.savePaymentSuccess(payment.getId(), portOnePaymentId, order.getMemberId(), pgResponse.totalAmount());
+                paymentService.savePaymentSuccess(payment.getId(), order.getMemberId(), pgResponse.totalAmount());
 
                 List<Product> orderedProducts = order.getOrderItems().stream()
                         .map(OrderItem::getProduct)
@@ -82,6 +93,8 @@ public class PaymentCommandService {
                     cancelPaymentWithLogging(portOnePaymentId, "Verification failed: Amount mismatch");
                 }
             }
+        } catch (InvalidPaymentIdentifierException e) {
+            throw e; // 취소 및 실패 처리 없이 에러 반환
         } catch (Exception e) {
             // 예외 발생 시 DB 트랜잭션 실패 반영 호출 후 결제 보상 취소 요청
             paymentService.savePaymentFailed(payment.getId());
