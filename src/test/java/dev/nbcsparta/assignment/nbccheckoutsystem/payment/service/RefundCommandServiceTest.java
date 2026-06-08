@@ -180,7 +180,7 @@ class RefundCommandServiceTest {
                 new RefundResponse(1L, paymentId, 30_000L, 0, request.reason(), PaymentStatus.REFUNDED, OrderStatus.CANCELLED)
         );
 
-        doThrow(new RuntimeException("portone failed"))
+        doThrow(new RefundFailedException())
                 .when(paymentGateway).cancelPayment(payment.getPortOnePaymentId(), "simple change of mind");
 
         assertThrows(RefundFailedException.class,

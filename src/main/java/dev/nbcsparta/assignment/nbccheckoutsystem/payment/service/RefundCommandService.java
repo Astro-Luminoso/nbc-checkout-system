@@ -48,9 +48,7 @@ public class RefundCommandService {
 
         // 2. 실제 포트원 결제 금액이 있는 경우에만 외부 통신 수행
         if (payment.getPaidAmount() > 0) {
-
             paymentGateway.cancelPayment(payment.getPortOnePaymentId(), request.reason());
-
         }
 
         return response;
