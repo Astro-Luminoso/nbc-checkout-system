@@ -44,23 +44,21 @@ public class RefundCommandService {
         if (refundRepository.existsByPaymentId(paymentId)) {
             throw new DuplicateRefundException();
         }
-        // 실제 포트원 결제 금액이 있는지 확인
+        // 1. 내부 DB 환불 처리를 먼저 수행하여 논리적 권한(주문, 재고, 포인트)을 먼저 회수함
+        RefundResponse response = refundService.refundCompletedPayment(payment, request.reason());
+
+        // 2. 실제 포트원 결제 금액이 있는 경우에만 외부 통신 수행
         if (payment.getPaidAmount() > 0) {
             try {
                 paymentGateway.cancelPayment(payment.getPortOnePaymentId(), request.reason());
-            } catch (Exception exception) {
+            } catch (Exception e) {
+                // DB 환불은 처리되었으나 PG 취소가 실패한 상태 (수동 환불 대상)
+                log.error("CRITICAL: DB refund succeeded but PG cancellation failed. Manual refund required! PaymentId: {}, Error: {}", paymentId, e.getMessage(), e);
+                // DB는 이미 환불되었으나, 클라이언트에게 일시적 결제 취소 지연 상태임을 알림
                 throw new RefundFailedException();
             }
         }
 
-        try {
-            return refundService.refundCompletedPayment(payment, request.reason());
-        } catch (Exception e) {
-            // PG 취소는 이미 완료됐지만 DB 반영에 실패한 상태 — 수동 복구 필요
-            log.error("CRITICAL: PG cancellation succeeded but DB update failed. " +
-                    "PaymentId: {}, PortOnePaymentId: {}, Error: {}",
-                    paymentId, payment.getPortOnePaymentId(), e.getMessage(), e);
-            throw new RefundFailedException();
-        }
+        return response;
     }
 }
