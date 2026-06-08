@@ -6,6 +6,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.BusinessExcep
 
 public class UnauthorisedException extends BusinessException {
     public UnauthorisedException() {
-        super(HttpStatus.FORBIDDEN,"본인의 주문만 접근할 수 있습니다.");
+        super(HttpStatus.FORBIDDEN,"Client Not Match");
     }
 }
