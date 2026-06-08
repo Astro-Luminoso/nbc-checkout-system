@@ -64,7 +64,7 @@ class RefundCommandServiceTest {
     }
 
     @Test
-    void refundCompletedCardPaymentCallsPortOneThenPersistsRefund() {
+    void refundCompletedCardPaymentPersistsRefundThenCallsPortOne() {
         long paymentId = 10L;
         long memberId = 1L;
         Payment payment = payment(paymentId, memberId, 30_000, 0, 30_000, PaymentStatus.COMPLETED);
@@ -78,9 +78,9 @@ class RefundCommandServiceTest {
 
         RefundResponse response = refundCommandService.refund(paymentId, memberId, request);
 
-        InOrder inOrder = inOrder(paymentGateway, refundService);
-        inOrder.verify(paymentGateway).cancelPayment(payment.getPortOnePaymentId(), request.reason());
+        InOrder inOrder = inOrder(refundService, paymentGateway);
         inOrder.verify(refundService).refundCompletedPayment(payment, request.reason());
+        inOrder.verify(paymentGateway).cancelPayment(payment.getPortOnePaymentId(), request.reason());
 
         assertEquals(1L, response.refundId());
         assertEquals(paymentId, response.paymentId());
@@ -168,19 +168,25 @@ class RefundCommandServiceTest {
     }
 
     @Test
-    void refundDoesNotPersistWhenPortOneCancelFails() {
+    void refundPersistsButThrowsExceptionWhenPortOneCancelFails() {
         long paymentId = 10L;
         Payment payment = payment(paymentId, 1L, 30_000, 0, 30_000, PaymentStatus.COMPLETED);
+        RefundRequest request = new RefundRequest("simple change of mind");
 
         when(paymentRepository.findByIdWithOrderAndItems(paymentId)).thenReturn(Optional.of(payment));
         when(refundRepository.existsByPaymentId(paymentId)).thenReturn(false);
+        
+        when(refundService.refundCompletedPayment(payment, request.reason())).thenReturn(
+                new RefundResponse(1L, paymentId, 30_000L, 0, request.reason(), PaymentStatus.REFUNDED, OrderStatus.CANCELLED)
+        );
+
         doThrow(new RuntimeException("portone failed"))
                 .when(paymentGateway).cancelPayment(payment.getPortOnePaymentId(), "simple change of mind");
 
         assertThrows(RefundFailedException.class,
-                () -> refundCommandService.refund(paymentId, 1L, new RefundRequest("simple change of mind")));
+                () -> refundCommandService.refund(paymentId, 1L, request));
 
-        verify(refundService, never()).refundCompletedPayment(any(), anyString());
+        verify(refundService).refundCompletedPayment(payment, request.reason());
     }
 
     private Payment payment(
