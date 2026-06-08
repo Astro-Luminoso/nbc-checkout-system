@@ -1,8 +1,15 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.entity;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.PointExceedTotalCostException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.entity.BaseEntity;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NoCartItemException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +27,9 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Column(nullable = false)
     private int totalAmount;
@@ -43,18 +51,39 @@ public class Order extends BaseEntity {
 
     // ========================
 
-    public Order(int totalAmount, int usedPoint, Long memberId, List<OrderItem> orderItems) {
-        this.usedPoint = usedPoint;
-        this.memberId = memberId;
-        this.totalAmount = totalAmount;
-        this.orderItems = new ArrayList<>();
+    public Order(Member member, OrderCreateRequest request, List<CartItem> cartItems) {
         this.orderStatus = OrderStatus.STANDBY;
-        orderItems.forEach(this::addOrderItem);
+        this.member = member;
+        this.orderItems = this.toOrderItem(cartItems, request.cartItemIds().size());
+        this.totalAmount = this.orderItems.stream()
+                .mapToInt(item -> item.getPrice() * item.getQuantities()).sum();
+        this.usedPoint = this.inspectRequestedPoint(request.usePoint());
     }
 
-    public void addOrderItem(OrderItem orderItem) {
-        this.orderItems.add(orderItem);
-        orderItem.setOrder(this);
+    private List<OrderItem> toOrderItem(List<CartItem> cartItems, int requestSize) {
+        if (cartItems.isEmpty()) {
+            throw new NoCartItemException();
+        }
+        if (cartItems.size() != requestSize) {
+            throw new ItemsNotMatchException();
+        }
+
+        List<OrderItem> orderItems = new ArrayList<>();
+        for (CartItem item : cartItems) {
+            Product product = item.getProduct();
+            product.isSellable(item.getQuantities());
+            orderItems.add(new OrderItem(this, product, item.getQuantities()));
+        }
+
+        return orderItems;
+    }
+
+    private int inspectRequestedPoint(int requested) {
+        if (this.totalAmount < requested || this.member.getPointBalance() < requested) {
+            throw new PointExceedTotalCostException();
+        }
+
+        return requested;
     }
 
     public void paymentResult(Long paidAmount) {
@@ -74,5 +103,9 @@ public class Order extends BaseEntity {
     // 환불 시 주문 상태를 CANCELLED로 변경
     public void cancel() {
         this.orderStatus = OrderStatus.CANCELLED;
+    }
+
+    public boolean isEqualStatus(OrderStatus status) {
+        return this.orderStatus == status;
     }
 }

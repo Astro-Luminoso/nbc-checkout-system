@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
@@ -23,6 +24,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.RefundFailed
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGateway;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.RefundRepository;
+import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -189,7 +191,13 @@ class RefundCommandServiceTest {
             int paidAmount,
             PaymentStatus status
     ) {
-        Order order = new Order(totalAmount, usedPoint, memberId, List.of());
+        Order order = newInstance(Order.class);
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
+        ReflectionTestUtils.setField(member, "id", memberId);
+        ReflectionTestUtils.setField(order, "member", member);
+        ReflectionTestUtils.setField(order, "totalAmount", totalAmount);
+        ReflectionTestUtils.setField(order, "usedPoint", usedPoint);
+        ReflectionTestUtils.setField(order, "orderItems", List.of());
         ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.PAID);
 
         Payment payment = new Payment(order);
@@ -199,5 +207,15 @@ class RefundCommandServiceTest {
         ReflectionTestUtils.setField(payment, "status", status);
         ReflectionTestUtils.setField(payment, "paidAt", LocalDateTime.now());
         return payment;
+    }
+
+    private <T> T newInstance(Class<T> type) {
+        try {
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }
