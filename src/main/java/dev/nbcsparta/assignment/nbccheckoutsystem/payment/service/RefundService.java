@@ -1,6 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.payment.service;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
@@ -45,7 +45,7 @@ public class RefundService {
             throw new DuplicateRefundException();
         }
 
-        Members member = memberRepository.findById(order.getMemberId())
+        Member member = memberRepository.findById(order.getMember().getId())
                 .orElseThrow(MemberNotFoundException::new);
 
         int pointRefundAmount = order.getUsedPoint();
@@ -73,7 +73,7 @@ public class RefundService {
         }
     }
 
-    private void restoreUsedPoint(Members member, Order order, int pointRefundAmount) {
+    private void restoreUsedPoint(Member member, Order order, int pointRefundAmount) {
         if (pointRefundAmount <= 0) {
             return;
         }
@@ -84,7 +84,7 @@ public class RefundService {
         );
     }
 
-    private void cancelEarnedPoint(Members member, Order order, int earnedPointToCancel) {
+    private void cancelEarnedPoint(Member member, Order order, int earnedPointToCancel) {
         if (earnedPointToCancel <= 0) {
             return;
         }

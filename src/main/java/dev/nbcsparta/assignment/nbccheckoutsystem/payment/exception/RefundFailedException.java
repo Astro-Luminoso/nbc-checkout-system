@@ -6,6 +6,6 @@ import org.springframework.http.HttpStatus;
 public class RefundFailedException extends BusinessException {
 
     public RefundFailedException() {
-        super(HttpStatus.BAD_GATEWAY, "환불 요청 처리에 실패했습니다.");
+        super(HttpStatus.BAD_GATEWAY, "내부 주문은 취소되었으나 일시적인 오류로 결제 취소 요청이 실패했습니다. 고객센터에 문의해주세요.");
     }
 }

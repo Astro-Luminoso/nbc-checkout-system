@@ -30,10 +30,11 @@ public class OrderItem extends Item {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    public OrderItem(String name, int price, Integer quantities, Product product) {
+    public OrderItem(Order order, Product product, Integer quantities) {
         super(product, quantities);
-        this.name = name;
-        this.price = price;
+        this.order = order;
+        this.name = product.getName();
+        this.price = product.getPrice();
     }
 
     public void setOrder(Order order) {

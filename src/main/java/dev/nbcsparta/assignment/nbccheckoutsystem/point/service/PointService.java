@@ -1,5 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.point.service;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransaction;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.dto.PointTransactionResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,5 +20,21 @@ public class PointService {
         return pointTransactionRepository.findByMemberId(memberId).stream()
                 .map(PointTransactionResponse::from)
                 .toList();
+    }
+
+    public List<PointTransaction> getPointTransactionsByOrderId(long orderId) {
+        return pointTransactionRepository.findByOrderId(orderId);
+    }
+
+    @Transactional
+    public void recordPointUse(dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member member, int usedPoint, dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order order) {
+        if (usedPoint <= 0) return;
+        pointTransactionRepository.save(PointTransaction.createUse(member, usedPoint, order));
+    }
+
+    @Transactional
+    public void recordPointEarn(dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member member, int earnedPoint, dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order order) {
+        if (earnedPoint <= 0) return;
+        pointTransactionRepository.save(PointTransaction.createEarn(member, earnedPoint, order));
     }
 }

@@ -3,7 +3,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.point.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransaction;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransactionType;
@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,11 +34,15 @@ class PointServiceTest {
         // Given
         Long memberId = 1L;
 
-        Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", memberId);
 
-        Order order = new Order(22000, 7000, memberId, List.of());
+        Order order = newInstance(Order.class);
         ReflectionTestUtils.setField(order, "id", 201L);
+        ReflectionTestUtils.setField(order, "member", member);
+        ReflectionTestUtils.setField(order, "totalAmount", 22000);
+        ReflectionTestUtils.setField(order, "usedPoint", 7000);
+        ReflectionTestUtils.setField(order, "orderItems", List.of());
 
         LocalDateTime earnCreatedDate = LocalDateTime.of(2026, 6, 4, 10, 0);
         PointTransaction earnPointTransaction = PointTransaction.createEarn(member, 15000, order);
@@ -63,5 +68,15 @@ class PointServiceTest {
         assertThat(responses.get(1).type()).isEqualTo(PointTransactionType.USE);
         assertThat(responses.get(1).amount()).isEqualTo(7000);
         assertThat(responses.get(1).createdDate()).isEqualTo(useCreatedDate);
+    }
+
+    private <T> T newInstance(Class<T> type) {
+        try {
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }

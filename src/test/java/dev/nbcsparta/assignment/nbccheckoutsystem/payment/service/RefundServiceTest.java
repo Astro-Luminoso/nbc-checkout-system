@@ -9,7 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
@@ -61,7 +61,7 @@ class RefundServiceTest {
 
     @Test
     void refundCompletedMixedPaymentRestoresPointsCancelsEarnedPointsRestoresStockAndSavesRefund() {
-        Members member = member(1L, 1_000);
+        Member member = member(1L, 1_000);
         Product keyboard = product(10L, "Keyboard", 8);
         Product mouse = product(11L, "Mouse", 4);
         Order order = paidOrder(100L, member.getId(), 30_000, 5_000, List.of(
@@ -112,7 +112,7 @@ class RefundServiceTest {
 
     @Test
     void refundCompletedPaymentRechecksPaymentStatusInsideTransaction() {
-        Members member = member(1L, 1_000);
+        Member member = member(1L, 1_000);
         Order order = paidOrder(100L, member.getId(), 30_000, 0, List.of());
         Payment payment = completedPayment(200L, order, "portone-200", 30_000);
         ReflectionTestUtils.setField(payment, "status", PaymentStatus.REFUNDED);
@@ -129,7 +129,7 @@ class RefundServiceTest {
 
     @Test
     void refundCompletedPaymentRechecksOrderStatusInsideTransaction() {
-        Members member = member(1L, 1_000);
+        Member member = member(1L, 1_000);
         Order order = paidOrder(100L, member.getId(), 30_000, 0, List.of());
         ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.CANCELLED);
         Payment payment = completedPayment(200L, order, "portone-200", 30_000);
@@ -146,7 +146,7 @@ class RefundServiceTest {
 
     @Test
     void refundCompletedPaymentRechecksDuplicateRefundInsideTransaction() {
-        Members member = member(1L, 1_000);
+        Member member = member(1L, 1_000);
         Order order = paidOrder(100L, member.getId(), 30_000, 0, List.of());
         Payment payment = completedPayment(200L, order, "portone-200", 30_000);
         ReflectionTestUtils.setField(order, "payment", payment);
@@ -164,7 +164,7 @@ class RefundServiceTest {
     @Test
     void refundCompletedPaymentCancelsOnlyAvailableEarnedPointsWhenAlreadyPartiallySpent() {
         // paidAmount=30,000 → earnedPointToCancel=300, but member only has 100 left
-        Members member = member(1L, 100);
+        Member member = member(1L, 100);
         Order order = paidOrder(100L, member.getId(), 30_000, 0, List.of());
         Payment payment = completedPayment(200L, order, "portone-200", 30_000);
         ReflectionTestUtils.setField(order, "payment", payment);
@@ -190,8 +190,8 @@ class RefundServiceTest {
         assertEquals(100, earnCancelTx.getAmount());
     }
 
-    private Members member(Long id, int pointBalance) {
-        Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
+    private Member member(Long id, int pointBalance) {
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", id);
         ReflectionTestUtils.setField(member, "pointBalance", pointBalance);
         return member;
@@ -206,15 +206,25 @@ class RefundServiceTest {
     }
 
     private Order paidOrder(Long id, Long memberId, int totalAmount, int usedPoint, List<OrderItem> orderItems) {
-        Order order = new Order(totalAmount, usedPoint, memberId, orderItems);
+        Order order = newInstance(Order.class);
+        Member member = member(memberId, 0);
         ReflectionTestUtils.setField(order, "id", id);
+        ReflectionTestUtils.setField(order, "member", member);
+        ReflectionTestUtils.setField(order, "totalAmount", totalAmount);
+        ReflectionTestUtils.setField(order, "usedPoint", usedPoint);
+        ReflectionTestUtils.setField(order, "orderItems", orderItems);
+        orderItems.forEach(item -> item.setOrder(order));
         ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.PAID);
         return order;
     }
 
     private OrderItem orderItem(Long id, String name, int price, int quantities, Product product) {
-        OrderItem orderItem = new OrderItem(name, price, quantities, product);
+        OrderItem orderItem = newInstance(OrderItem.class);
         ReflectionTestUtils.setField(orderItem, "id", id);
+        ReflectionTestUtils.setField(orderItem, "name", name);
+        ReflectionTestUtils.setField(orderItem, "price", price);
+        ReflectionTestUtils.setField(orderItem, "quantities", quantities);
+        ReflectionTestUtils.setField(orderItem, "product", product);
         return orderItem;
     }
 

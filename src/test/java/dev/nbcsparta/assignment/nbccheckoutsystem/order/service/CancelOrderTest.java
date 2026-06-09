@@ -4,12 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCancelDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
@@ -19,8 +17,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OrderNotFoundE
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.PaymentStatus;
-import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
@@ -37,31 +33,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 class CancelOrderTest {
 
     @Mock
-    private CartItemRepository cartItemRepository;
-
-    @Mock
     private OrderRepository orderRepository;
-
-    @Mock
-    private PaymentRepository paymentRepository;
-
-    @Mock
-    private MemberRepository memberRepository;
-
-    @Mock
-    private PointTransactionRepository pointTransactionRepository;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(
-                cartItemRepository,
-                orderRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
-        );
+        orderService = new OrderService(orderRepository);
     }
 
     @Test
@@ -74,8 +52,8 @@ class CancelOrderTest {
                 orderId,
                 memberId,
                 List.of(
-                        new OrderItem("Keyboard", 20_000, 2, keyboard),
-                        new OrderItem("Mouse", 15_000, 1, mouse)
+                        orderItem("Keyboard", 20_000, 2, keyboard),
+                        orderItem("Mouse", 15_000, 1, mouse)
                 )
         );
 
@@ -92,12 +70,6 @@ class CancelOrderTest {
                 () -> assertEquals(3, mouse.getStockQuantity())
         );
         verify(orderRepository).findOrderInFullDetailById(orderId);
-        verifyNoInteractions(
-                cartItemRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
-        );
     }
 
     @Test
@@ -113,12 +85,6 @@ class CancelOrderTest {
 
         assertEquals("Order Not Found", exception.getMessage());
         verify(orderRepository).findOrderInFullDetailById(orderId);
-        verifyNoInteractions(
-                cartItemRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
-        );
     }
 
     @Test
@@ -128,7 +94,7 @@ class CancelOrderTest {
         Order order = order(
                 orderId,
                 1L,
-                List.of(new OrderItem("Keyboard", 20_000, 2, product))
+                List.of(orderItem("Keyboard", 20_000, 2, product))
         );
 
         when(orderRepository.findOrderInFullDetailById(orderId)).thenReturn(Optional.of(order));
@@ -155,10 +121,10 @@ class CancelOrderTest {
         Order order = order(
                 orderId,
                 memberId,
-                List.of(new OrderItem("Keyboard", 20_000, 2, product))
+                List.of(orderItem("Keyboard", 20_000, 2, product))
         );
         order.paymentResult((long) order.getTotalAmount());
-        order.getPayment().confirmSuccess("portone-payment-id", LocalDateTime.now());
+        order.getPayment().confirmSuccess(LocalDateTime.now());
 
         when(orderRepository.findOrderInFullDetailById(orderId)).thenReturn(Optional.of(order));
 
@@ -180,18 +146,43 @@ class CancelOrderTest {
         int totalAmount = orderItems.stream()
                 .mapToInt(item -> item.getPrice() * item.getQuantities())
                 .sum();
-        Order order = new Order(totalAmount, 0, memberId, orderItems);
+        Order order = newInstance(Order.class);
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
+        ReflectionTestUtils.setField(member, "id", memberId);
         ReflectionTestUtils.setField(order, "id", id);
+        ReflectionTestUtils.setField(order, "member", member);
+        ReflectionTestUtils.setField(order, "totalAmount", totalAmount);
+        ReflectionTestUtils.setField(order, "usedPoint", 0);
+        ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.STANDBY);
+        ReflectionTestUtils.setField(order, "orderItems", orderItems);
+        orderItems.forEach(item -> item.setOrder(order));
         ReflectionTestUtils.setField(order, "payment", new Payment(order));
         return order;
     }
 
+    private OrderItem orderItem(String name, int price, int quantities, Product product) {
+        OrderItem orderItem = newInstance(OrderItem.class);
+        ReflectionTestUtils.setField(orderItem, "name", name);
+        ReflectionTestUtils.setField(orderItem, "price", price);
+        ReflectionTestUtils.setField(orderItem, "quantities", quantities);
+        ReflectionTestUtils.setField(orderItem, "product", product);
+        return orderItem;
+    }
+
     private Product product(Long id, int stockQuantity) throws Exception {
-        Constructor<Product> constructor = Product.class.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        Product product = constructor.newInstance();
+        Product product = newInstance(Product.class);
         ReflectionTestUtils.setField(product, "id", id);
         ReflectionTestUtils.setField(product, "stockQuantity", stockQuantity);
         return product;
+    }
+
+    private <T> T newInstance(Class<T> type) {
+        try {
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }

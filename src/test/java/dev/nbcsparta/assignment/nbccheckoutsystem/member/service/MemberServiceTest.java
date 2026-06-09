@@ -3,7 +3,7 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.member.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.dto.PointBalanceResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class MemberServiceTest {
     void getPointBalanceReturnsCorrectBalance() {
         // Given
         Long memberId = 1L;
-        Members member = new Members("test@test.com", "password", "name", "010-0000-0000");
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
         ReflectionTestUtils.setField(member, "id", memberId);
         ReflectionTestUtils.setField(member, "pointBalance", 10000);
 

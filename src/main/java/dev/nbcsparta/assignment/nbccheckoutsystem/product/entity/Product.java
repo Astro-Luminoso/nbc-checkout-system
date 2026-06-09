@@ -1,22 +1,18 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.product.entity;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.entity.BaseEntity;
+import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.NotOnSaleException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.exception.OutOfStockException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "products")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 @Getter
-public class Product {
+public class Product extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,23 +40,23 @@ public class Product {
 	@Enumerated(EnumType.STRING)
 	private SaleStatus saleStatus;
 
-	@CreatedDate
-	@Column(nullable = false)
-	private LocalDateTime createdDate;
-
-	@LastModifiedDate
-	@Column(nullable = false)
-	private LocalDateTime updatedDate;
-
 	public void deductStockValue(int amount) {
+		if (this.stockQuantity < amount) {
+			throw new OutOfStockException();
+		}
 		this.stockQuantity -= amount;
-	}
-
-	public void addStockValue(int amount) {
-		this.stockQuantity += amount;
 	}
 
 	public void restoreStockValue(int amount) {
 		this.stockQuantity += amount;
+	}
+
+	public void isSellable(int quantities) {
+		if (this.getSaleStatus() != SaleStatus.ON_SALE) {
+			throw new NotOnSaleException();
+		}
+		if (this.getStockQuantity() - quantities < 0) {
+			throw new dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OutOfStockException();
+		}
 	}
 }

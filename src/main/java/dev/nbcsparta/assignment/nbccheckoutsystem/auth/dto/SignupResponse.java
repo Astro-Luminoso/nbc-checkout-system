@@ -1,6 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.auth.dto;
 
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Members;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 
 public record SignupResponse(
         Long memberId,
@@ -9,7 +9,7 @@ public record SignupResponse(
         String phoneNumber
 ) {
 
-    public static SignupResponse from(Members member) {
+    public static SignupResponse from(Member member) {
         return new SignupResponse(
                 member.getId(),
                 member.getEmail(),

@@ -10,7 +10,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.DuplicateRef
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.ForbiddenPaymentException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.InvalidPaymentStatusException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.PaymentNotFoundException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.RefundFailedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGateway;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.RefundRepository;
@@ -33,7 +32,7 @@ public class RefundCommandService {
                 .orElseThrow(PaymentNotFoundException::new);
         Order order = payment.getOrder();
         // 주문을 만든 회원과 현재 로그인한 회원이 같은지 확인
-        if (!order.getMemberId().equals(memberId)) {
+        if (!order.getMember().getId().equals(memberId)) {
             throw new ForbiddenPaymentException();
         }
         // 결제 완료 상태인지 확인
@@ -44,23 +43,14 @@ public class RefundCommandService {
         if (refundRepository.existsByPaymentId(paymentId)) {
             throw new DuplicateRefundException();
         }
-        // 실제 포트원 결제 금액이 있는지 확인
+        // 1. 내부 DB 환불 처리를 먼저 수행하여 논리적 권한(주문, 재고, 포인트)을 먼저 회수함
+        RefundResponse response = refundService.refundCompletedPayment(payment, request.reason());
+
+        // 2. 실제 포트원 결제 금액이 있는 경우에만 외부 통신 수행
         if (payment.getPaidAmount() > 0) {
-            try {
-                paymentGateway.cancelPayment(payment.getPortOnePaymentId(), request.reason());
-            } catch (Exception exception) {
-                throw new RefundFailedException();
-            }
+            paymentGateway.cancelPayment(payment.getPortOnePaymentId(), request.reason());
         }
 
-        try {
-            return refundService.refundCompletedPayment(payment, request.reason());
-        } catch (Exception e) {
-            // PG 취소는 이미 완료됐지만 DB 반영에 실패한 상태 — 수동 복구 필요
-            log.error("CRITICAL: PG cancellation succeeded but DB update failed. " +
-                    "PaymentId: {}, PortOnePaymentId: {}, Error: {}",
-                    paymentId, payment.getPortOnePaymentId(), e.getMessage(), e);
-            throw new RefundFailedException();
-        }
+        return response;
     }
 }

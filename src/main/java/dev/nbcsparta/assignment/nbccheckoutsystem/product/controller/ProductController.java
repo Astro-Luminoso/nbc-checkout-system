@@ -1,17 +1,14 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.product.controller;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductListResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.dto.ProductSearchCondition;
-import dev.nbcsparta.assignment.nbccheckoutsystem.product.exception.ProductNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.service.ProductService;
-
-import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -27,22 +24,16 @@ public class ProductController {
 	private final ProductService productService;
 
 	@GetMapping
-	public ResponseEntity<ProductListResponse> getProducts(
+	public ResponseEntity<ApiResponse<ProductListResponse>> getProducts(
 		@ModelAttribute ProductSearchCondition condition // requestparm을 쓰니 너무 지저분에서 modelattribute로 작성함
 	) {
 		Page<ProductResponse> result = productService.getProducts(condition);
-		return ResponseEntity.ok(ProductListResponse.from(result));
+		return ResponseEntity.ok(ApiResponse.success(ProductListResponse.from(result)));
 	}
 
 	@GetMapping("/{productId}")
-	public ResponseEntity<?> getProduct(@PathVariable Long productId) {
-		try {
-			ProductResponse response = productService.getProduct(productId);
-			return ResponseEntity.ok(response);
-		} catch (ProductNotFoundException exception) {
-			return ResponseEntity
-				.status(HttpStatus.NOT_FOUND)
-				.body(Map.of("message", exception.getMessage()));
-		}
+	public ResponseEntity<ApiResponse<ProductResponse>> getProduct(@PathVariable Long productId) {
+		ProductResponse response = productService.getProduct(productId);
+		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 }

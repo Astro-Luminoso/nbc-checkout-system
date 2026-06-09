@@ -1,7 +1,10 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception;
 
-public class UnexpectedPaymentFailException extends RuntimeException{
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.BusinessException;
+import org.springframework.http.HttpStatus;
+
+public class UnexpectedPaymentFailException extends BusinessException {
     public UnexpectedPaymentFailException() {
-        super("예상치 못한 결제 중단");
+        super(HttpStatus.CONFLICT, "예상치 못한 결제 중단");
     }
 }

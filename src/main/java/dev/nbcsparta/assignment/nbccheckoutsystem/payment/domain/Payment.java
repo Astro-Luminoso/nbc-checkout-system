@@ -5,9 +5,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,12 +13,14 @@ import java.util.UUID;
 @Table(name = "payments")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version
+    private Long version;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, unique = true)
@@ -39,14 +38,6 @@ public class Payment {
 
     private LocalDateTime paidAt;
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdDate;
-
-    @LastModifiedDate
-    @Column(nullable = false)
-    private LocalDateTime updatedDate;
-
     public Payment(Order order) {
         this.order = order;
         this.portOnePaymentId = UUID.randomUUID().toString();
@@ -54,17 +45,25 @@ public class Payment {
         this.status = PaymentStatus.PENDING;
     }
 
-    public void confirmSuccess(String portOnePaymentId, LocalDateTime paidAt) {
-        this.portOnePaymentId = portOnePaymentId;
+    public void confirmSuccess(LocalDateTime paidAt) {
+        if (this.status != PaymentStatus.PENDING) {
+            throw new IllegalStateException("Payment must be in PENDING state to confirm success, but is " + this.status);
+        }
         this.status = PaymentStatus.COMPLETED;
         this.paidAt = paidAt;
     }
 
     public void confirmFailed() {
+        if (this.status != PaymentStatus.PENDING) {
+            throw new IllegalStateException("Payment must be in PENDING state to fail, but is " + this.status);
+        }
         this.status = PaymentStatus.FAILED;
     }
 
     public void refund() {
+        if (this.status != PaymentStatus.COMPLETED) {
+            throw new IllegalStateException("Payment must be in COMPLETED state to be refunded, but is " + this.status);
+        }
         this.status = PaymentStatus.REFUNDED;
     }
 
@@ -73,6 +72,10 @@ public class Payment {
     }
 
     public void cancelPayment() {
-        this.status = PaymentStatus.FAILED;
+        if (this.status == PaymentStatus.PENDING) {
+            this.status = PaymentStatus.FAILED;
+        } else if (this.status == PaymentStatus.COMPLETED) {
+            this.status = PaymentStatus.REFUNDED;
+        }
     }
 }

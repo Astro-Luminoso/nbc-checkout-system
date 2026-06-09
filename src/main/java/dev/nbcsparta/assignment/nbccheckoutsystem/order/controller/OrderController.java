@@ -1,5 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.order.controller;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.facade.OrderFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.service.OrderService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OrderController {
 
+    private final OrderFacade orderFacade;
     private final OrderService orderService;
 
     @PostMapping
@@ -29,7 +31,7 @@ public class OrderController {
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiResponse.success(orderService.createOrder(memberId, request)));
+                ApiResponse.success(orderFacade.createOrder(memberId, request)));
     }
 
     @GetMapping("/{id}")
@@ -37,7 +39,7 @@ public class OrderController {
             @PathVariable long id,
             @AuthenticationPrincipal Long memberId
     ) {
-        SpecificOrderDetail data = orderService.getOrderDetail(id, memberId);
+        SpecificOrderDetail data = orderFacade.getOrderDetail(id, memberId);
 
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
     }
@@ -46,7 +48,7 @@ public class OrderController {
     public ResponseEntity<ApiResponse<MyOrderDetail>> getMyOrders (
             @PageableDefault(size = 20)Pageable pageable,
             @AuthenticationPrincipal Long memberId) {
-        MyOrderDetail data = orderService.getMyOrderDetail(memberId, pageable);
+        MyOrderDetail data = orderFacade.getMyOrderDetail(memberId, pageable);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
     }
 
@@ -55,7 +57,7 @@ public class OrderController {
             @AuthenticationPrincipal Long memberId,
             @RequestParam(value = "items", required = false) String items
     ) {
-        OrderPreviewDetail data = orderService.getOrderPreview(memberId, items);
+        OrderPreviewDetail data = orderFacade.getOrderPreview(memberId, items);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
     }
 
@@ -64,7 +66,7 @@ public class OrderController {
             @PathVariable long id,
             @AuthenticationPrincipal Long memberId
     ) {
-        OrderCancelDetail data = orderService.cancelOrder(id, memberId);
+        OrderCancelDetail data = orderFacade.cancelOrder(id, memberId);
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success(data));
     }
 }
