@@ -76,7 +76,7 @@ class GetOrderTest {
     void setUp() {
         orderFacade = new OrderFacade(
                 new OrderService(cartItemRepository, orderRepository, pointTransactionRepository),
-                new PaymentService(paymentRepository, memberRepository, cartItemRepository, pointTransactionRepository),
+                new PaymentService(paymentRepository, memberRepository, pointTransactionRepository),
                 new CartItemService(cartItemRepository, memberRepository, productRepository),
                 new MemberService(memberRepository),
                 new PointService(pointTransactionRepository)
