@@ -64,6 +64,7 @@ jobs:
           source: "mysql-dummy-data.sql"
           target: "~/nbc-checkout-system"
 
+
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:

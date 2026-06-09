@@ -1,3 +1,4 @@
+
 -- MySQL dummy data (H2 local-dummy-data.sql을 MySQL 문법으로 변환)
 -- Run this after the app has started once (Hibernate creates tables via ddl-auto: update).
 -- All dummy members use this password: password1234
