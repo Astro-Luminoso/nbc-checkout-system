@@ -8,11 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
 
-    Optional<CartItem> findByMemberAndProduct(Member members, Product product);
+    CartItem findByMemberAndProduct(Member members, Product product);
+
+
     @Query("SELECT c FROM CartItem c JOIN FETCH c.product WHERE c.member.id = :memberId AND c.id IN :cartItemIds")
     List<CartItem> findByMemberIdIn(@Param("memberId") Long memberId, @Param("cartItemIds") List<Long> cartItemIds);
 
@@ -34,4 +35,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     void deleteByMembersAndProductIn(Member members, List<Product> products);
 
     List<CartItem> findAllByIdIn(List<Long> items);
+
+    void deleteAllByMember_Id(Long memberId);
 }

@@ -1,8 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.controller;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.*;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemCommandService;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemQueryService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.facade.CartItemFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,15 +15,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CartItemController {
 
-    private final CartItemCommandService cartItemCommandService;
-    private final CartItemQueryService cartItemQueryService;
+    private final CartItemFacade cartItemFacade;
 
     @PostMapping
     public ResponseEntity<ApiResponse<CartItemResponse>> addCartItem(
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody CartItemRequest request
     ) {
-        CartItemResponse response = cartItemCommandService.addCartItem(memberId, request);
+        CartItemResponse response = cartItemFacade.addCartItem(memberId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
@@ -32,7 +30,7 @@ public class CartItemController {
     public ResponseEntity<ApiResponse<GetCartResponse>> getCartItems(
             @AuthenticationPrincipal Long memberId
     ) {
-        GetCartResponse response = cartItemQueryService.getCartItems(memberId);
+        GetCartResponse response = cartItemFacade.getCartItems(memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -42,7 +40,7 @@ public class CartItemController {
             @PathVariable Long cartItemId,
             @Valid @RequestBody UpdateCartItemRequest request
     ) {
-        UpdateCartItemResponse response = cartItemCommandService.updateCartItem(memberId, cartItemId, request);
+        UpdateCartItemResponse response = cartItemFacade.updateCartItem(memberId, cartItemId, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -51,7 +49,7 @@ public class CartItemController {
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long cartItemId
     ) {
-        cartItemCommandService.deleteCartItem(memberId, cartItemId);
+        cartItemFacade.deleteCartItem(memberId, cartItemId);
         return ResponseEntity.ok(ApiResponse.success("장바구니 항목이 성공적으로 삭제되었습니다."));
     }
 
@@ -59,7 +57,7 @@ public class CartItemController {
     public ResponseEntity<ApiResponse<Void>> deleteAllCartItems(
             @AuthenticationPrincipal Long memberId
     ) {
-        cartItemCommandService.deleteAllCartItems(memberId);
+        cartItemFacade.deleteAllCartItems(memberId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
