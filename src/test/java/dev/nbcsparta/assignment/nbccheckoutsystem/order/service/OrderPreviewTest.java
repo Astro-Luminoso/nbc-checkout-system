@@ -63,7 +63,7 @@ class OrderPreviewTest {
                 new OrderService(orderRepository),
                 new PaymentService(paymentRepository, memberRepository, pointTransactionRepository),
                 new CartItemCommandService(cartItemRepository),
-                new CartItemQueryService(cartItemRepository, memberRepository),
+                new CartItemQueryService(cartItemRepository),
                 new MemberService(memberRepository),
                 new PointService(pointTransactionRepository),
                 new CartItemValidator()

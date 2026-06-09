@@ -7,7 +7,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemQueryService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 
 import java.util.List;
@@ -24,14 +23,12 @@ public class CartItemQueryServiceTest {
 
     @Mock
     private CartItemRepository cartItemRepository;
-    @Mock
-    private MemberRepository memberRepository;
 
     private CartItemQueryService cartItemQueryService;
 
     @BeforeEach
     void setUp() {
-        cartItemQueryService = new CartItemQueryService(cartItemRepository, memberRepository);
+        cartItemQueryService = new CartItemQueryService(cartItemRepository);
     }
 
     // 장바구니 조회 성공
