@@ -1,5 +1,7 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.payment.service;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemCommandService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemQueryService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
@@ -10,24 +12,26 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGateway;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGatewayResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PaymentCommandService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentGateway paymentGateway;
     private final PaymentService paymentService;
-    private final CartItemService cartItemService;
+    private final CartItemCommandService cartItemCommandService;
+    private final CartItemQueryService cartItemQueryService;
 
     public PaymentConfirmResponse confirmPayment(PaymentConfirmRequest request, Long memberId) {
         Payment payment = paymentRepository.findByOrderIdWithOrder(request.orderId())
@@ -74,7 +78,7 @@ public class PaymentCommandService {
             List<Product> orderedProducts = order.getOrderItems().stream()
                     .map(OrderItem::getProduct)
                     .toList();
-            cartItemService.deletePurchasedCartItems(order.getMember().getId(), orderedProducts);
+            cartItemQueryService.deletePurchasedCartItems(order.getMember().getId(), orderedProducts);
 
             Payment updatedPayment = paymentRepository.findById(payment.getId())
                     .orElseThrow(PaymentNotFoundException::new);
@@ -106,7 +110,7 @@ public class PaymentCommandService {
             List<Product> orderedProducts = order.getOrderItems().stream()
                     .map(OrderItem::getProduct)
                     .toList();
-            cartItemService.deletePurchasedCartItems(order.getMember().getId(), orderedProducts);
+            cartItemQueryService.deletePurchasedCartItems(order.getMember().getId(), orderedProducts);
         } else {
             // isPaid가 아닌 경우 (예: READY, FAILED, CANCELLED 등 명시적 실패 응답)
             // 이 경우 FAILED 전환 및 재고 복구 (단, 포트원 결제 자체는 안 된 상태이므로 취소 요청 불필요)

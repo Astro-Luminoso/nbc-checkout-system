@@ -1,7 +1,9 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.facade;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemCommandService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemQueryService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemValidator;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.service.MemberService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.*;
@@ -28,17 +30,19 @@ public class OrderFacade {
 
     private final OrderService orderService;
     private final PaymentService paymentService;
-    private final CartItemService cartItemService;
+    private final CartItemCommandService cartItemCommandServiceService;
+    private final CartItemQueryService cartItemQueryService;
     private final MemberService memberService;
     private final PointService pointService;
+    private final CartItemValidator cartItemValidator;
 
 
     @Transactional
     public CreateOrderData createOrder(Long memberId, OrderCreateRequest request) {
         Member member = memberService.getMemberById(memberId);
-        List<CartItem> cartItems = cartItemService.getCartItemsByMemberIdIn(memberId, request.cartItemIds());
+        List<CartItem> cartItems = cartItemQueryService.getCartItemsByMemberIdIn(memberId, request.cartItemIds());
         Order order = orderService.createNewOrder(member, request, cartItems);
-        cartItemService.deductProductStock(cartItems);
+        cartItemCommandServiceService.deductProductStock(cartItems);
         Payment payment = paymentService.savePayment(order);
         return CreateOrderData.from(payment);
     }
@@ -67,10 +71,10 @@ public class OrderFacade {
     @Transactional
     public OrderPreviewDetail getOrderPreview(long memberId, String items) {
         List<CartItem> cartItems = (items == null || items.isBlank()) ?
-                cartItemService.getCartItemsByMemberId(memberId) :
-                cartItemService.getCartItemsByMemberIdIn(Arrays.stream(items.split(","))
+                cartItemQueryService.getCartItemsByMemberId(memberId) :
+                cartItemQueryService.getCartItemsByMemberIdIn(Arrays.stream(items.split(","))
                                                          .map(Long::parseLong).toList());
-        cartItemService.inspectCartItemOwner(cartItems, memberId);
+        cartItemValidator.inspectCartItemOwner(cartItems, memberId);
 
         return OrderPreviewDetail.from(cartItems);
     }

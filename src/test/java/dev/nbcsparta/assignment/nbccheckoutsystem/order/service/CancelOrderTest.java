@@ -4,13 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
-import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCancelDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.OrderItem;
@@ -20,8 +17,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OrderNotFoundE
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.PaymentStatus;
-import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
@@ -38,29 +33,13 @@ import org.springframework.test.util.ReflectionTestUtils;
 class CancelOrderTest {
 
     @Mock
-    private CartItemRepository cartItemRepository;
-
-    @Mock
     private OrderRepository orderRepository;
-
-    @Mock
-    private PaymentRepository paymentRepository;
-
-    @Mock
-    private MemberRepository memberRepository;
-
-    @Mock
-    private PointTransactionRepository pointTransactionRepository;
 
     private OrderService orderService;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(
-                cartItemRepository,
-                orderRepository,
-                pointTransactionRepository
-        );
+        orderService = new OrderService(orderRepository);
     }
 
     @Test
@@ -91,12 +70,6 @@ class CancelOrderTest {
                 () -> assertEquals(3, mouse.getStockQuantity())
         );
         verify(orderRepository).findOrderInFullDetailById(orderId);
-        verifyNoInteractions(
-                cartItemRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
-        );
     }
 
     @Test
@@ -112,12 +85,6 @@ class CancelOrderTest {
 
         assertEquals("Order Not Found", exception.getMessage());
         verify(orderRepository).findOrderInFullDetailById(orderId);
-        verifyNoInteractions(
-                cartItemRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
-        );
     }
 
     @Test
