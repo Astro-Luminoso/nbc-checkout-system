@@ -1,100 +1,63 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.controller;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.*;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.OutOfStockException;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.facade.CartItemFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cart-items")
 @RequiredArgsConstructor
 public class CartItemController {
 
-    private final CartItemService cartItemService;
+    private final CartItemFacade cartItemFacade;
 
     @PostMapping
-    public ResponseEntity<?> addCartItem(
+    public ResponseEntity<ApiResponse<CartItemResponse>> addCartItem(
             @AuthenticationPrincipal Long memberId,
             @Valid @RequestBody CartItemRequest request
     ) {
-        try {
-            CartItemResponse response = cartItemService.addCartItem(memberId, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
-        } catch (OutOfStockException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of("message", e.getMessage()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", e.getMessage()));
-        }
+        CartItemResponse response = cartItemFacade.addCartItem(memberId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @GetMapping
-    public ResponseEntity<?> getCartItems(
+    public ResponseEntity<ApiResponse<GetCartResponse>> getCartItems(
             @AuthenticationPrincipal Long memberId
     ) {
-        try {
-            GetCartResponse response = cartItemService.getCartItems(memberId);
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of("message", e.getMessage()));
-        }
+        GetCartResponse response = cartItemFacade.getCartItems(memberId);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PatchMapping("/{cartItemId}")
-    public ResponseEntity<?> updateCartItem(
+    public ResponseEntity<ApiResponse<UpdateCartItemResponse>> updateCartItem(
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long cartItemId,
             @Valid @RequestBody UpdateCartItemRequest request
-    ){
-        try {
-            UpdateCartItemResponse response = cartItemService.updateCartItem(memberId, cartItemId, request);
-            return ResponseEntity.ok(ApiResponse.success(response));
-        } catch(OutOfStockException e){
-            // 409 -> 변경수량 재고초과
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(Map.of("message", e.getMessage()));
-        } catch(IllegalArgumentException e){
-            // 403 or 404
-            HttpStatus status = e.getMessage().contains("본인")?
-                    HttpStatus.FORBIDDEN: HttpStatus.NOT_FOUND;
-            return ResponseEntity.status(status)
-                    .body(Map.of("message", e.getMessage()));
-        }
-
+    ) {
+        UpdateCartItemResponse response = cartItemFacade.updateCartItem(memberId, cartItemId, request);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @DeleteMapping("/{cartItemId}")
-    public ResponseEntity<?> deleteCartItem(
+    public ResponseEntity<ApiResponse<String>> deleteCartItem(
             @AuthenticationPrincipal Long memberId,
             @PathVariable Long cartItemId
-    ){
-        try{
-            cartItemService.deleteCartItem(memberId, cartItemId);
-            return ResponseEntity.ok(ApiResponse.success("장바구니 항목이 성공적으로 삭제되었습니다."));
-        } catch (IllegalArgumentException e){
-            HttpStatus status = e.getMessage().contains("본인")?
-                    HttpStatus.FORBIDDEN: HttpStatus.NOT_FOUND;
-            return ResponseEntity.status(status)
-                    .body(Map.of("message", e.getMessage()));
-        }
+    ) {
+        cartItemFacade.deleteCartItem(memberId, cartItemId);
+        return ResponseEntity.ok(ApiResponse.success("장바구니 항목이 성공적으로 삭제되었습니다."));
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteAllCartItems(
+    public ResponseEntity<ApiResponse<Void>> deleteAllCartItems(
             @AuthenticationPrincipal Long memberId
-    ){
-        cartItemService.deleteAllCartItems(memberId);
+    ) {
+        cartItemFacade.deleteAllCartItems(memberId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

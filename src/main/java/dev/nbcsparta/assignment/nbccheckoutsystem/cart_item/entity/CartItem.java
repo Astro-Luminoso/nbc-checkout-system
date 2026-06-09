@@ -29,7 +29,7 @@ public class CartItem extends Item {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member members;
+    private Member member;
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -37,7 +37,7 @@ public class CartItem extends Item {
 
     public CartItem(Member members, Product product, Integer quantity) {
         super(product, quantity);
-        this.members = members;
+        this.member = members;
     }
     // 동일 상품 재담기 시에 수량 합산
     public void addQuantity(Integer additionalQuantity){
@@ -47,4 +47,5 @@ public class CartItem extends Item {
     public void updateQuantity(Integer quantity) {
         this.quantities = quantity;
     }
+
 }

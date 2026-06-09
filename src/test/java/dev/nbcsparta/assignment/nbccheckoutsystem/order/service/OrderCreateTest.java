@@ -15,9 +15,14 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.ItemsNotMatchException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.PointExceedTotalCostException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemCommandService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemQueryService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemValidator;
+import dev.nbcsparta.assignment.nbccheckoutsystem.facade.OrderFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.exception.MemberNotFoundException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.service.MemberService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.CreateOrderData;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.OrderCreateRequest;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
@@ -27,7 +32,9 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.OutOfStockExce
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.service.PaymentService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.point.service.PointService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.SaleStatus;
 import java.lang.reflect.Constructor;
@@ -60,16 +67,18 @@ class OrderCreateTest {
     @Mock
     private PointTransactionRepository pointTransactionRepository;
 
-    private OrderService orderService;
+    private OrderFacade orderFacade;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(
-                cartItemRepository,
-                orderRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
+        orderFacade = new OrderFacade(
+                new OrderService(orderRepository),
+                new PaymentService(paymentRepository, memberRepository, pointTransactionRepository),
+                new CartItemCommandService(cartItemRepository),
+                new CartItemQueryService(cartItemRepository),
+                new MemberService(memberRepository),
+                new PointService(pointTransactionRepository),
+                new CartItemValidator()
         );
     }
 
@@ -83,7 +92,7 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 5_000);
 
         when(memberRepository.findById(memberId)).thenReturn(Optional.of(member(memberId, 10_000)));
-        when(cartItemRepository.findAllByIdIn(memberId, request.cartItemIds()))
+        when(cartItemRepository.findByMemberIdIn(memberId, request.cartItemIds()))
                 .thenReturn(List.of(keyboardCartItem, mouseCartItem));
         when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
             Order order = invocation.getArgument(0);
@@ -92,7 +101,7 @@ class OrderCreateTest {
         });
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        CreateOrderData response = orderService.createOrder(memberId, request);
+        CreateOrderData response = orderFacade.createOrder(memberId, request);
 
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         ArgumentCaptor<Payment> paymentCaptor = ArgumentCaptor.forClass(Payment.class);
@@ -133,9 +142,11 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByMemberIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        orderService.createOrder(1L, request);
+        orderFacade.createOrder(1L, request);
 
         verify(cartItemRepository, never()).deleteAll(anyList());
     }
@@ -147,11 +158,11 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByMemberIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         OutOfStockException exception = assertThrows(
                 OutOfStockException.class,
-                () -> orderService.createOrder(1L, request)
+                () -> orderFacade.createOrder(1L, request)
         );
 
         verify(orderRepository, never()).save(any(Order.class));
@@ -170,11 +181,11 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByMemberIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         NotOnSaleException exception = assertThrows(
                 NotOnSaleException.class,
-                () -> orderService.createOrder(1L, request)
+                () -> orderFacade.createOrder(1L, request)
         );
 
         verify(orderRepository, never()).save(any(Order.class));
@@ -187,11 +198,11 @@ class OrderCreateTest {
     void createOrderThrowsNoCartItemExceptionWhenSelectedCartItemsDoNotExist() {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of());
+        when(cartItemRepository.findByMemberIdIn(1L, request.cartItemIds())).thenReturn(List.of());
 
         NoCartItemException exception = assertThrows(
                 NoCartItemException.class,
-                () -> orderService.createOrder(1L, request)
+                () -> orderFacade.createOrder(1L, request)
         );
 
         verify(orderRepository, never()).save(any(Order.class));
@@ -207,11 +218,11 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L, 12L), 0);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 0)));
-        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByMemberIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         ItemsNotMatchException exception = assertThrows(
                 ItemsNotMatchException.class,
-                () -> orderService.createOrder(1L, request)
+                () -> orderFacade.createOrder(1L, request)
         );
 
         verify(orderRepository, never()).save(any(Order.class));
@@ -230,10 +241,10 @@ class OrderCreateTest {
 
         MemberNotFoundException exception = assertThrows(
                 MemberNotFoundException.class,
-                () -> orderService.createOrder(1L, request)
+                () -> orderFacade.createOrder(1L, request)
         );
 
-        verify(cartItemRepository, never()).findAllByIdIn(any(Long.class), anyList());
+        verify(cartItemRepository, never()).findByMemberIdIn(any(Long.class), anyList());
         verify(orderRepository, never()).save(any(Order.class));
         verify(paymentRepository, never()).save(any(Payment.class));
         assertEquals("사용자를 찾을 수 없습니다.", exception.getMessage());
@@ -246,11 +257,11 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 20_001);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 30_000)));
-        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByMemberIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         PointExceedTotalCostException exception = assertThrows(
                 PointExceedTotalCostException.class,
-                () -> orderService.createOrder(1L, request)
+                () -> orderFacade.createOrder(1L, request)
         );
 
         verify(orderRepository, never()).save(any(Order.class));
@@ -269,11 +280,11 @@ class OrderCreateTest {
         OrderCreateRequest request = new OrderCreateRequest(List.of(11L), 5_000);
 
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member(1L, 4_999)));
-        when(cartItemRepository.findAllByIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
+        when(cartItemRepository.findByMemberIdIn(1L, request.cartItemIds())).thenReturn(List.of(cartItem));
 
         PointExceedTotalCostException exception = assertThrows(
                 PointExceedTotalCostException.class,
-                () -> orderService.createOrder(1L, request)
+                () -> orderFacade.createOrder(1L, request)
         );
 
         verify(orderRepository, never()).save(any(Order.class));
