@@ -1,5 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.CartItemNotFoundException;
@@ -40,7 +41,7 @@ public class CartItemCommandService {
 
 
         CartItem cartItem = cartItemRepository
-                .findByMembersAndProduct(members, product)
+                .findByMemberAndProduct(members, product)
                 .map(existing -> {
                     int newQuantity = existing.getQuantities() + request.quantity();
                     cartItemValidator.validateQuantity(product, newQuantity);
@@ -76,7 +77,34 @@ public class CartItemCommandService {
     public void deleteAllCartItems(Long memberId) {
         Member members = memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
-        cartItemRepository.deleteAllByMembers(members);
+
+        cartItemRepository.deleteAllByMember(members);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartItem> getCartItemsByMemberIdIn(long memberId, List<Long> cartItemIds) {
+        return cartItemRepository.findByMemberIdIn(memberId, cartItemIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartItem> getCartItemsByMemberIdIn(List<Long> cartItemIds) {
+        return cartItemRepository.findAllByIdIn(cartItemIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartItem> getCartItemsByMemberId(long memberId) {
+        return cartItemRepository.findAllByMemberId(memberId);
+    }
+
+    @Transactional
+    public void deductProductStock(List<CartItem> cartItems) {
+        cartItems.forEach(item -> item.getProduct().deductStockValue(item.getQuantities()));
+    }
+
+    public void inspectCartItemOwner(List<CartItem> cartItems, long memberId) {
+        if (cartItems.stream().anyMatch(item -> item.getMember().getId() != memberId)) {
+            throw new UnauthorisedException();
+        }
     }
 
     // 조회 + 소유권 검증
