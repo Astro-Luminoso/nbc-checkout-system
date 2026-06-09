@@ -109,7 +109,7 @@ class OrderCreateTest {
                 () -> assertEquals(5_000, response.usedPoint()),
                 () -> assertEquals("STANDBY", response.orderStatus().name()),
 
-                () -> assertEquals(memberId, savedOrder.getMemberId()),
+                () -> assertEquals(memberId, savedOrder.getMember().getId()),
                 () -> assertEquals(55_000, savedOrder.getTotalAmount()),
                 () -> assertEquals(5_000, savedOrder.getUsedPoint()),
                 () -> assertEquals("STANDBY", savedOrder.getOrderStatus().name()),

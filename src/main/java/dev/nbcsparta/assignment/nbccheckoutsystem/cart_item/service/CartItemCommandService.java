@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CartItemCommandService {
@@ -85,5 +87,15 @@ public class CartItemCommandService {
             throw new ForbiddenCartItemException();
         }
         return cartItem;
+    }
+
+    @Transactional
+    public void deletePurchasedCartItems(Long memberId, List<Product> products) {
+        Member members = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+
+        if (products != null && !products.isEmpty()) {
+            cartItemRepository.deleteByMembersAndProductIn(members, products);
+        }
     }
 }

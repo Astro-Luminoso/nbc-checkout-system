@@ -10,6 +10,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
@@ -23,6 +24,7 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.RefundFailed
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.port.PaymentGateway;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.RefundRepository;
+import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -62,7 +64,7 @@ class RefundCommandServiceTest {
     }
 
     @Test
-    void refundCompletedCardPaymentCallsPortOneThenPersistsRefund() {
+    void refundCompletedCardPaymentPersistsRefundThenCallsPortOne() {
         long paymentId = 10L;
         long memberId = 1L;
         Payment payment = payment(paymentId, memberId, 30_000, 0, 30_000, PaymentStatus.COMPLETED);
@@ -76,9 +78,9 @@ class RefundCommandServiceTest {
 
         RefundResponse response = refundCommandService.refund(paymentId, memberId, request);
 
-        InOrder inOrder = inOrder(paymentGateway, refundService);
-        inOrder.verify(paymentGateway).cancelPayment(payment.getPortOnePaymentId(), request.reason());
+        InOrder inOrder = inOrder(refundService, paymentGateway);
         inOrder.verify(refundService).refundCompletedPayment(payment, request.reason());
+        inOrder.verify(paymentGateway).cancelPayment(payment.getPortOnePaymentId(), request.reason());
 
         assertEquals(1L, response.refundId());
         assertEquals(paymentId, response.paymentId());
@@ -166,19 +168,25 @@ class RefundCommandServiceTest {
     }
 
     @Test
-    void refundDoesNotPersistWhenPortOneCancelFails() {
+    void refundPersistsButThrowsExceptionWhenPortOneCancelFails() {
         long paymentId = 10L;
         Payment payment = payment(paymentId, 1L, 30_000, 0, 30_000, PaymentStatus.COMPLETED);
+        RefundRequest request = new RefundRequest("simple change of mind");
 
         when(paymentRepository.findByIdWithOrderAndItems(paymentId)).thenReturn(Optional.of(payment));
         when(refundRepository.existsByPaymentId(paymentId)).thenReturn(false);
-        doThrow(new RuntimeException("portone failed"))
+        
+        when(refundService.refundCompletedPayment(payment, request.reason())).thenReturn(
+                new RefundResponse(1L, paymentId, 30_000L, 0, request.reason(), PaymentStatus.REFUNDED, OrderStatus.CANCELLED)
+        );
+
+        doThrow(new RefundFailedException())
                 .when(paymentGateway).cancelPayment(payment.getPortOnePaymentId(), "simple change of mind");
 
         assertThrows(RefundFailedException.class,
-                () -> refundCommandService.refund(paymentId, 1L, new RefundRequest("simple change of mind")));
+                () -> refundCommandService.refund(paymentId, 1L, request));
 
-        verify(refundService, never()).refundCompletedPayment(any(), anyString());
+        verify(refundService).refundCompletedPayment(payment, request.reason());
     }
 
     private Payment payment(
@@ -189,7 +197,13 @@ class RefundCommandServiceTest {
             int paidAmount,
             PaymentStatus status
     ) {
-        Order order = new Order(totalAmount, usedPoint, memberId, List.of());
+        Order order = newInstance(Order.class);
+        Member member = new Member("test@test.com", "password", "name", "010-0000-0000");
+        ReflectionTestUtils.setField(member, "id", memberId);
+        ReflectionTestUtils.setField(order, "member", member);
+        ReflectionTestUtils.setField(order, "totalAmount", totalAmount);
+        ReflectionTestUtils.setField(order, "usedPoint", usedPoint);
+        ReflectionTestUtils.setField(order, "orderItems", List.of());
         ReflectionTestUtils.setField(order, "orderStatus", OrderStatus.PAID);
 
         Payment payment = new Payment(order);
@@ -199,5 +213,15 @@ class RefundCommandServiceTest {
         ReflectionTestUtils.setField(payment, "status", status);
         ReflectionTestUtils.setField(payment, "paidAt", LocalDateTime.now());
         return payment;
+    }
+
+    private <T> T newInstance(Class<T> type) {
+        try {
+            Constructor<T> constructor = type.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
+        } catch (ReflectiveOperationException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 }
