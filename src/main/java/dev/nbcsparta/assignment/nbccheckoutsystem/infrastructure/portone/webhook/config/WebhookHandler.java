@@ -7,8 +7,8 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.infrastructure.portone.webhook
 import dev.nbcsparta.assignment.nbccheckoutsystem.infrastructure.portone.webhook.service.WebhookEventService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception.PaymentNotFoundException;
+import dev.nbcsparta.assignment.nbccheckoutsystem.facade.PaymentFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.payment.service.PaymentCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ public class WebhookHandler {
     private final ObjectMapper objectMapper;
     private final WebhookEventService webhookEventService;
     private final PaymentRepository paymentRepository;
-    private final PaymentCommandService paymentCommandService;
+    private final PaymentFacade paymentFacade;
 
     public void handle(String webhookId, String rawBody) {
         log.info("Handling webhook event: webhookId={}", webhookId);
@@ -70,7 +70,7 @@ public class WebhookHandler {
                     .orElseThrow(PaymentNotFoundException::new);
 
             // 결제 상태 검증 및 상태 갱신 (소유권 검증은 생략하므로 checkOwnership = false)
-            paymentCommandService.processConfirmation(payment, portOnePaymentId, null, false);
+            paymentFacade.processConfirmation(payment, portOnePaymentId, null, false);
 
             webhookEventService.markProcessed(event);
             log.info("Webhook event successfully processed. webhookId={}, portOnePaymentId={}", webhookId, portOnePaymentId);

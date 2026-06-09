@@ -1,7 +1,10 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception;
 
-public class NotValidatedPaidAmountException extends RuntimeException{
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.BusinessException;
+import org.springframework.http.HttpStatus;
+
+public class NotValidatedPaidAmountException extends BusinessException {
     public NotValidatedPaidAmountException() {
-        super("금액 검증에 실패하였습니다!");
+        super(HttpStatus.BAD_REQUEST, "금액 검증에 실패하였습니다!");
     }
 }

@@ -1,7 +1,10 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.payment.exception;
 
-public class InvalidPaymentIdentifierException extends RuntimeException {
+import dev.nbcsparta.assignment.nbccheckoutsystem.global.exception.BusinessException;
+import org.springframework.http.HttpStatus;
+
+public class InvalidPaymentIdentifierException extends BusinessException {
     public InvalidPaymentIdentifierException() {
-        super("주문과 결제 ID가 일치하지 않습니다");
+        super(HttpStatus.BAD_REQUEST, "결제 식별 정보(portOnePaymentID)가 일치하지 않습니다");
     }
 }

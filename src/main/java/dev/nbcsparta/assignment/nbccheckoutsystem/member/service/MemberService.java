@@ -26,4 +26,18 @@ public class MemberService {
         return memberRepository.findById(memberId)
                 .orElseThrow(MemberNotFoundException::new);
     }
+
+    @Transactional
+    public void deductPoint(Long memberId, int amount) {
+        if (amount <= 0) return;
+        Member member = getMemberById(memberId);
+        member.deductPointBalance(amount);
+    }
+
+    @Transactional
+    public void addPoint(Long memberId, int amount) {
+        if (amount <= 0) return;
+        Member member = getMemberById(memberId);
+        member.addPointBalance(amount);
+    }
 }
