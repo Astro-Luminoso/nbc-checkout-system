@@ -25,4 +25,16 @@ public class PointService {
     public List<PointTransaction> getPointTransactionsByOrderId(long orderId) {
         return pointTransactionRepository.findByOrderId(orderId);
     }
+
+    @Transactional
+    public void recordPointUse(dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member member, int usedPoint, dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order order) {
+        if (usedPoint <= 0) return;
+        pointTransactionRepository.save(PointTransaction.createUse(member, usedPoint, order));
+    }
+
+    @Transactional
+    public void recordPointEarn(dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member member, int earnedPoint, dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order order) {
+        if (earnedPoint <= 0) return;
+        pointTransactionRepository.save(PointTransaction.createEarn(member, earnedPoint, order));
+    }
 }

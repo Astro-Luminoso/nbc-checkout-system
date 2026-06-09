@@ -61,7 +61,7 @@ class OrderPreviewTest {
     void setUp() {
         orderFacade = new OrderFacade(
                 new OrderService(orderRepository),
-                new PaymentService(paymentRepository, memberRepository, pointTransactionRepository),
+                new PaymentService(paymentRepository),
                 new CartItemCommandService(cartItemRepository),
                 new CartItemQueryService(cartItemRepository),
                 new MemberService(memberRepository),

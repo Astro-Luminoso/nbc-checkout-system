@@ -48,14 +48,12 @@ public class Member extends BaseEntity {
         this.pointBalance -= usedPoint;
     }
 
-    public void addPointBalance(int paidAmount) {
-        int earnPoint = (int) (paidAmount * 0.01);
-
-        if (earnPoint < 0) {
+    public void addPointBalance(int usedPoint) {
+        if (usedPoint < 0) {
             throw new InvalidPointUseException();
         }
 
-        this.pointBalance += earnPoint;
+        this.pointBalance += usedPoint;
     }
 
     // 환불 시 사용 포인트 복구
