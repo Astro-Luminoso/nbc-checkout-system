@@ -9,14 +9,12 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.exception.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.entity.Order;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -24,9 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final CartItemRepository cartItemRepository;
     private final OrderRepository orderRepository;
-    private final PointTransactionRepository pointTransactionRepository;
 
 
     public void isOwner(long ownerId, long memberId) {
