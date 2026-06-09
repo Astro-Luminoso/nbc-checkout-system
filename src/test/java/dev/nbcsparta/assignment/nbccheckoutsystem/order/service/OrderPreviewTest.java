@@ -10,7 +10,9 @@ import static org.mockito.Mockito.when;
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemCommandService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemQueryService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemValidator;
 import dev.nbcsparta.assignment.nbccheckoutsystem.facade.OrderFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.global.response.ApiResponse;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
@@ -24,7 +26,6 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.payment.service.PaymentService
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.service.PointService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.product.entity.Product;
-import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,19 +55,18 @@ class OrderPreviewTest {
     @Mock
     private PointTransactionRepository pointTransactionRepository;
 
-    @Mock
-    private ProductRepository productRepository;
-
     private OrderFacade orderFacade;
 
     @BeforeEach
     void setUp() {
         orderFacade = new OrderFacade(
-                new OrderService(cartItemRepository, orderRepository, pointTransactionRepository),
+                new OrderService(orderRepository),
                 new PaymentService(paymentRepository, memberRepository, pointTransactionRepository),
-                new CartItemService(cartItemRepository, memberRepository, productRepository),
+                new CartItemCommandService(cartItemRepository),
+                new CartItemQueryService(cartItemRepository, memberRepository),
                 new MemberService(memberRepository),
-                new PointService(pointTransactionRepository)
+                new PointService(pointTransactionRepository),
+                new CartItemValidator()
         );
     }
 
