@@ -1,5 +1,6 @@
 package dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service;
 
+import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.dto.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.exception.OutOfStockException;
@@ -37,7 +38,7 @@ public class CartItemService {
         }
 
         CartItem cartItem = cartItemRepository
-                .findByMembersAndProduct(members, product)
+                .findByMemberAndProduct(members, product)
                 .map(existing -> {
                     int newQuantity = existing.getQuantities() + request.quantity();
 
@@ -78,7 +79,7 @@ public class CartItemService {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
 
-        if (!cartItem.getMembers().getId().equals(memberId)) {
+        if (!cartItem.getMember().getId().equals(memberId)) {
             throw new IllegalArgumentException("회원님의 장바구니만 변경할 수 있습니다.");
         }
 
@@ -96,7 +97,7 @@ public class CartItemService {
         CartItem cartItem = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장바구니 항목입니다."));
 
-        if (!cartItem.getMembers().getId().equals(memberId)) {
+        if (!cartItem.getMember().getId().equals(memberId)) {
             throw new IllegalArgumentException("본인 장바구니 항목이 아닌 경우 삭제할 수 없습니다.");
         }
         cartItemRepository.delete(cartItem);
@@ -107,10 +108,36 @@ public class CartItemService {
         Member members = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
 
-        cartItemRepository.deleteAllByMembers(members);
+        cartItemRepository.deleteAllByMember(members);
+    }
+  
+    @Transactional(readOnly = true)
+    public List<CartItem> getCartItemsByMemberIdIn(long memberId, List<Long> cartItemIds) {
+        return cartItemRepository.findByMemberIdIn(memberId, cartItemIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartItem> getCartItemsByMemberIdIn(List<Long> cartItemIds) {
+        return cartItemRepository.findAllByIdIn(cartItemIds);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartItem> getCartItemsByMemberId(long memberId) {
+        return cartItemRepository.findAllByMemberId(memberId);
     }
 
     @Transactional
+    public void deductProductStock(List<CartItem> cartItems) {
+        cartItems.forEach(item -> item.getProduct().deductStockValue(item.getQuantities()));
+    }
+
+    public void inspectCartItemOwner(List<CartItem> cartItems, long memberId) {
+        if (cartItems.stream().anyMatch(item -> item.getMember().getId() != memberId)) {
+            throw new UnauthorisedException();
+        }
+    }
+  
+  @Transactional
     public void deletePurchasedCartItems(Long memberId, List<Product> products) {
         Member members = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));

@@ -9,8 +9,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.service.CartItemService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.facade.OrderFacade;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.repository.MemberRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.member.service.MemberService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.MyOrderDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.ItemDetail;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.SimpleOrderDetail;
@@ -23,9 +26,12 @@ import dev.nbcsparta.assignment.nbccheckoutsystem.order.repository.OrderReposito
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.Payment;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.domain.PaymentStatus;
 import dev.nbcsparta.assignment.nbccheckoutsystem.payment.repository.PaymentRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.payment.service.PaymentService;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransaction;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.domain.PointTransactionType;
 import dev.nbcsparta.assignment.nbccheckoutsystem.point.repository.PointTransactionRepository;
+import dev.nbcsparta.assignment.nbccheckoutsystem.point.service.PointService;
+import dev.nbcsparta.assignment.nbccheckoutsystem.product.repository.ProductRepository;
 import java.lang.reflect.Constructor;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -61,16 +67,19 @@ class GetOrderTest {
     @Mock
     private PointTransactionRepository pointTransactionRepository;
 
-    private OrderService orderService;
+    @Mock
+    private ProductRepository productRepository;
+
+    private OrderFacade orderFacade;
 
     @BeforeEach
     void setUp() {
-        orderService = new OrderService(
-                cartItemRepository,
-                orderRepository,
-                paymentRepository,
-                memberRepository,
-                pointTransactionRepository
+        orderFacade = new OrderFacade(
+                new OrderService(cartItemRepository, orderRepository, pointTransactionRepository),
+                new PaymentService(paymentRepository, memberRepository, pointTransactionRepository),
+                new CartItemService(cartItemRepository, memberRepository, productRepository),
+                new MemberService(memberRepository),
+                new PointService(pointTransactionRepository)
         );
     }
 
@@ -97,7 +106,7 @@ class GetOrderTest {
         when(orderRepository.findOrderInFullDetailById(orderId)).thenReturn(Optional.of(order));
         when(pointTransactionRepository.findByOrderId(orderId)).thenReturn(pointTransactions);
 
-        SpecificOrderDetail response = orderService.getOrderDetail(orderId, memberId);
+        SpecificOrderDetail response = orderFacade.getOrderDetail(orderId, memberId);
 
         Assertions.assertAll(
                 () -> Assertions.assertEquals(orderId, response.orderId()),
@@ -143,7 +152,7 @@ class GetOrderTest {
         when(orderRepository.findOrderInFullDetailById(orderId)).thenReturn(Optional.of(order));
         when(pointTransactionRepository.findByOrderId(orderId)).thenReturn(List.of());
 
-        SpecificOrderDetail response = orderService.getOrderDetail(orderId, memberId);
+        SpecificOrderDetail response = orderFacade.getOrderDetail(orderId, memberId);
 
         assertNull(response.point());
 
@@ -173,7 +182,7 @@ class GetOrderTest {
         when(orderRepository.findOrderInFullDetailById(orderId)).thenReturn(Optional.of(order));
         when(pointTransactionRepository.findByOrderId(orderId)).thenReturn(pointTransactions);
 
-        SpecificOrderDetail response = orderService.getOrderDetail(orderId, memberId);
+        SpecificOrderDetail response = orderFacade.getOrderDetail(orderId, memberId);
 
         Assertions.assertAll(
                 () -> Assertions.assertEquals(700, response.point().used()),
@@ -193,7 +202,7 @@ class GetOrderTest {
 
         OrderNotFoundException exception = Assertions.assertThrows(
                 OrderNotFoundException.class,
-                () -> orderService.getOrderDetail(orderId, memberId)
+                () -> orderFacade.getOrderDetail(orderId, memberId)
         );
 
         Assertions.assertEquals("Order Not Found", exception.getMessage());
@@ -218,7 +227,7 @@ class GetOrderTest {
 
         UnauthorisedException exception = Assertions.assertThrows(
                 UnauthorisedException.class,
-                () -> orderService.getOrderDetail(orderId, requestMemberId)
+                () -> orderFacade.getOrderDetail(orderId, requestMemberId)
         );
 
         Assertions.assertEquals("Client Not Match", exception.getMessage());
@@ -248,7 +257,7 @@ class GetOrderTest {
         when(orderRepository.findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class)))
                 .thenAnswer(invocation -> new PageImpl<>(orders, invocation.getArgument(1), 2));
 
-        MyOrderDetail response = orderService.getMyOrderDetail(memberId, requestPageable);
+        MyOrderDetail response = orderFacade.getMyOrderDetail(memberId, requestPageable);
 
         Assertions.assertAll(
                 () -> Assertions.assertEquals(2, response.content().size()),
@@ -285,7 +294,7 @@ class GetOrderTest {
         when(orderRepository.findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class)))
                 .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(1), 0));
 
-        orderService.getMyOrderDetail(memberId, requestPageable);
+        orderFacade.getMyOrderDetail(memberId, requestPageable);
 
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
         verify(orderRepository).findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), pageableCaptor.capture());
@@ -311,7 +320,7 @@ class GetOrderTest {
         when(orderRepository.findByMemberIdFormatOfSimpleOrderDetail(eq(memberId), any(Pageable.class)))
                 .thenAnswer(invocation -> new PageImpl<>(List.of(), invocation.getArgument(1), 0));
 
-        MyOrderDetail response = orderService.getMyOrderDetail(memberId, requestPageable);
+        MyOrderDetail response = orderFacade.getMyOrderDetail(memberId, requestPageable);
 
         Assertions.assertAll(
                 () -> Assertions.assertTrue(response.content().isEmpty()),
