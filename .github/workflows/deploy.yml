@@ -55,6 +55,15 @@ jobs:
           platforms: linux/arm64
           tags: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:latest
 
+      - name: Copy dummy data SQL to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          source: "mysql-dummy-data.sql"
+          target: "~/nbc-checkout-system"
+
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -67,3 +76,8 @@ jobs:
             docker compose pull
             docker compose up -d
             docker image prune -f
+            source .env
+            until docker exec nbc-checkout-mysql mysqladmin ping -u"${DB_USERNAME}" -p"${DB_PASSWORD}" --silent 2>/dev/null; do
+              sleep 2
+            done
+            docker exec -i nbc-checkout-mysql mysql -u"${DB_USERNAME}" -p"${DB_PASSWORD}" "${DB_NAME}" < mysql-dummy-data.sql
