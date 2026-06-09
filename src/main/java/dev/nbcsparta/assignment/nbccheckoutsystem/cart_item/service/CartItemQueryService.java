@@ -20,7 +20,6 @@ import java.util.Optional;
 public class CartItemQueryService {
 
     private final CartItemRepository cartItemRepository;
-    private final MemberRepository memberRepository;
 
 
     @Transactional(readOnly = true)
@@ -39,12 +38,9 @@ public class CartItemQueryService {
     }
 
     @Transactional
-    public void deletePurchasedCartItems(Long memberId, List<Product> products) {
-        Member members = memberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-
+    public void deletePurchasedCartItems(long memberId, List<Product> products) {
         if (products != null && !products.isEmpty()) {
-            cartItemRepository.deleteByMembersAndProductIn(members, products);
+            cartItemRepository.deleteByMemberIdAndProductIn(memberId, products);
         }
     }
 

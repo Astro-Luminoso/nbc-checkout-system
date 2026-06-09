@@ -2,7 +2,6 @@ package dev.nbcsparta.assignment.nbccheckoutsystem.order.service;
 
 import dev.nbcsparta.assignment.nbccheckoutsystem.auth.exception.UnauthorisedException;
 import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.entity.CartItem;
-import dev.nbcsparta.assignment.nbccheckoutsystem.cart_item.repository.CartItemRepository;
 import dev.nbcsparta.assignment.nbccheckoutsystem.member.domain.Member;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.dto.*;
 import dev.nbcsparta.assignment.nbccheckoutsystem.order.enums.OrderStatus;
